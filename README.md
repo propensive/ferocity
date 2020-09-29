@@ -2,9 +2,10 @@
 
 ## Installation
 
-### Clone the repository
+### Clone the repository and change directory
 ```sh
 git clone git@github.com:propensive/fury-vscode.git
+cd ./fury-vscode
 ```
 
 ### Install Typescript
@@ -13,14 +14,15 @@ The extension needs the TypeScript compiler (`tsc`) to build.
 npm install -g typescript
 ```
 
-### Package the extension
-The extension needs to be packaged with [vsce](https://github.com/microsoft/vscode-vsce). You can install it with `npm`:
+### Install dependencies and package the extension
+The extension needs to be packaged with [vsce](https://github.com/microsoft/vscode-vsce).
 ```sh
 npm install -g vsce
 ```
 
 and then:
 ```sh
+npm install
 vsce package -o ./fury.vsix
 ```
 
