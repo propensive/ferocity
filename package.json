@@ -13,7 +13,7 @@
 		"url": "https://github.com/propensive/fury-vscode"
 	},
 	"categories": [
-		"Other"
+		"Programming Languages"
 	],
 	"activationEvents": [
 		"onCommand:fury.helloWorld",
