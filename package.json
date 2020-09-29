@@ -4,7 +4,7 @@
 	"description": "Experimental dependency manager and build tool for Scala.",
 	"version": "0.0.1",
 	"publisher": "Propensive",
-	"icon": "logo.png",
+	"icon": "./media/logo.png",
 	"engines": {
 		"vscode": "^1.43.0"
 	},
@@ -17,7 +17,7 @@
 	],
 	"activationEvents": [
 		"onCommand:fury.helloWorld",
-		"onView:furyCommands"
+		"onView:furyItems"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -26,24 +26,37 @@
 				{
 					"id": "fury-explorer",
 					"title": "Fury",
-					"icon": "logo.svg"
+					"icon": "./media/logo.svg"
 				}
 			]
 		},
 		"views": {
 			"fury-explorer": [
 				{
-					"id": "furyCommands",
-					"name": "Commands"
+					"id": "furyItems",
+					"name": "Items"
 				}
 			]
 		},
 		"commands": [
 			{
-				"command": "fury.helloWorld",
-				"title": "Hello World"
+				"command": "fury.refreshLayer",
+				"title": "Refresh Layer",
+				"icon": {
+					"dark": "media/icons/dark/refresh.svg",
+					"light": "media/icons/light/refresh.svg"
+				}
 			}
-		]
+		],
+		"menus": {
+			"view/item/context": [
+				{
+					"command": "fury.refreshLayer",
+					"when": "view == furyItems && viewItem == furyLayer",
+					"group": "inline"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
