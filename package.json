@@ -40,20 +40,36 @@
 		},
 		"commands": [
 			{
-				"command": "fury.refreshLayer",
+				"command": "fury.layer.refresh",
 				"title": "Refresh Layer",
 				"icon": {
 					"dark": "media/icons/dark/refresh.svg",
 					"light": "media/icons/light/refresh.svg"
 				}
+			},
+			{
+				"command": "fury.layer.addProject",
+				"title": "Add Project"
+			},
+			{
+				"command": "fury.module.addDependency",
+				"title": "Add Dependency"
 			}
 		],
 		"menus": {
 			"view/item/context": [
 				{
-					"command": "fury.refreshLayer",
+					"command": "fury.layer.refresh",
 					"when": "view == furyItems && viewItem == furyLayer",
 					"group": "inline"
+				},
+				{
+					"command": "fury.layer.addProject",
+					"when": "view == furyItems && viewItem == furyLayer"
+				},
+				{
+					"command": "fury.module.addDependency",
+					"when": "view == furyItems && viewItem == furyModule"
 				}
 			]
 		}

@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { getLayers, getModules, getProjects } from './furyClient';
+import { getDependencies, getLayers, getModules, getProjects } from './furyClient';
 
 enum FuryItemType {
-	Layer, Project, Module
+	Layer, Project, Module, Dependency
 }
 
 class FuryItem extends vscode.TreeItem {
@@ -16,6 +16,7 @@ class FuryItem extends vscode.TreeItem {
 			case FuryItemType.Layer:
 				return vscode.TreeItemCollapsibleState.Expanded;
 			case FuryItemType.Project:
+			case FuryItemType.Module:
 				return vscode.TreeItemCollapsibleState.Collapsed;
 			default:
 				return vscode.TreeItemCollapsibleState.None;
@@ -28,8 +29,10 @@ class FuryItem extends vscode.TreeItem {
 				return 'furyLayer';
 			case FuryItemType.Project:
 				return 'furyProject';
-				case FuryItemType.Module: 
+			case FuryItemType.Module:
 				return 'furyModule';
+		  case FuryItemType.Dependency:
+				return 'furyDependency';
 			default:
 				return '';
 		}
@@ -55,6 +58,10 @@ class FuryItemsProvider implements vscode.TreeDataProvider<FuryItem> {
 			case FuryItemType.Project:
 				const project = element.label;
 				return getModules(project).then(modules => modules.map(module => new FuryItem(module, FuryItemType.Module)));
+			case FuryItemType.Module:
+				const module = element.label;
+				// TODO: Dependencies should be listed after clicking on 'dependencies' item
+				return getDependencies(module).then(dependencies => dependencies.map(dependency => new FuryItem(dependency, FuryItemType.Dependency)));
 			default:
 				return Promise.reject('Invalid fury item type.');
 		}
