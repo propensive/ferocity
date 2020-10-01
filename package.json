@@ -4,7 +4,7 @@
 	"description": "Experimental dependency manager and build tool for Scala.",
 	"version": "0.0.1",
 	"publisher": "Propensive",
-	"icon": "./media/logo.png",
+	"icon": "media/logo.png",
 	"engines": {
 		"vscode": "^1.43.0"
 	},
@@ -16,7 +16,8 @@
 		"Programming Languages"
 	],
 	"activationEvents": [
-		"onView:furyItems"
+		"onView:furyLayerItems",
+		"onView:furyUniverseItems"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -25,15 +26,19 @@
 				{
 					"id": "fury-explorer",
 					"title": "Fury",
-					"icon": "./media/logo.svg"
+					"icon": "media/logo.svg"
 				}
 			]
 		},
 		"views": {
 			"fury-explorer": [
 				{
-					"id": "furyItems",
-					"name": "Items"
+					"id": "furyLayerItems",
+					"name": "Layer"
+				},
+				{
+					"id": "furyUniverseItems",
+					"name": "Universe"
 				}
 			]
 		},

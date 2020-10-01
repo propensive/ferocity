@@ -1,18 +1,20 @@
 import * as vscode from 'vscode';
 import * as fury from './fury';
-import { FuryItemsProvider } from './furyItems';
+import { LayerItemsProvider, UniverseItemsProvider } from './treeView';
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Fury extension is active.');
 	console.log('Workspace root path: ' + vscode.workspace.rootPath);
 
-	const furyItemsProvider = new FuryItemsProvider(context.workspaceState);
+	const layerItemsProvider = new LayerItemsProvider(context.workspaceState);
+	const universeItemsProvider = new UniverseItemsProvider();
 
-	vscode.window.registerTreeDataProvider('furyItems', furyItemsProvider);
+	vscode.window.registerTreeDataProvider('furyLayerItems', layerItemsProvider);
+	vscode.window.registerTreeDataProvider('furyUniverseItems', universeItemsProvider);
 
 	vscode.commands.registerCommand('fury.layer.refresh', () => {
 		fury.layer.get(vscode.workspace.rootPath).then(layer => context.workspaceState.update('layer', layer));
-		furyItemsProvider.refresh();
+		layerItemsProvider.refresh();
 	});
 	vscode.commands.registerCommand('fury.layer.addProject', () => {
 		vscode.window.showInputBox();
