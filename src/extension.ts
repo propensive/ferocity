@@ -2,6 +2,10 @@ import * as vscode from 'vscode';
 import * as fury from './fury';
 import { LayerItemsProvider, UniverseItemsProvider } from './treeView';
 
+function handleConnectionError(error: any) {
+	vscode.window.showErrorMessage('Cannot connect to the Fury server.');
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Fury extension is active.');
 	console.log('Workspace root path: ' + vscode.workspace.rootPath);
@@ -13,7 +17,9 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('furyUniverseItems', universeItemsProvider);
 
 	vscode.commands.registerCommand('fury.layer.refresh', () => {
-		fury.layer.get(vscode.workspace.rootPath).then(layer => context.workspaceState.update('layer', layer));
+		fury.layer.get(vscode.workspace.rootPath)
+			.then(layer => context.workspaceState.update('layer', layer))
+			.catch(handleConnectionError);
 		layerItemsProvider.refresh();
 	});
 	vscode.commands.registerCommand('fury.layer.addProject', () => {

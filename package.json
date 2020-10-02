@@ -30,6 +30,12 @@
 				}
 			]
 		},
+		"viewsWelcome": [
+			{
+				"view": "furyLayerItems",
+				"contents": "Cannot connect to the Fury server."
+			}
+		],
 		"views": {
 			"fury-explorer": [
 				{
