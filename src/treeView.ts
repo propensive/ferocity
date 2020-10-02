@@ -10,7 +10,7 @@ class LayerItem extends vscode.TreeItem {
 	}
 
 	private static getCollapsibleState(contextValue: string) {
-		if (['furyDependency', 'furySource'].includes(contextValue)) {
+		if (['furyDependency', 'furySource', 'furyBinary'].includes(contextValue)) {
 			return vscode.TreeItemCollapsibleState.None;
 		} else {
 			return vscode.TreeItemCollapsibleState.Collapsed;
@@ -69,6 +69,12 @@ function makeSource(source: fury.Source, elementId?: string): LayerItem {
 	return layerItem;
 }
 
+function makeBinary(binaryName: string, elementId?: string) {
+	const layerItem = new LayerItem(binaryName, 'furyBinary', elementId);
+	layerItem.iconPath = makeIconPath('library');
+	return layerItem;
+}
+
 export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
 	private _onDidChangeTreeData: vscode.EventEmitter<LayerItem | undefined> = new vscode.EventEmitter<LayerItem | undefined>();
 	readonly onDidChangeTreeData: vscode.Event<LayerItem | undefined> = this._onDidChangeTreeData.event;
@@ -105,7 +111,8 @@ export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
 			case 'furyModule': {
 				return Promise.resolve([
 					new LayerItem('dependencies', 'furyDependencies', element.id),
-					new LayerItem('sources', 'furySources', element.id)
+					new LayerItem('sources', 'furySources', element.id),
+					new LayerItem('binaries', 'furyBinaries', element.id)
 				]);
 			}
 			case 'furyDependencies': {
@@ -121,6 +128,13 @@ export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
 				const projectName = names?.pop();
 				const module = layer.projects.find(project => project.name === projectName)?.modules.find(module => module.name === moduleName);
 				return module ? Promise.resolve(module.sources.map(source => makeSource(source, element.id))) : Promise.resolve([]);
+			}
+			case 'furyBinaries': {
+				names?.pop(); // skip 'binaries'
+				const moduleName = names?.pop();
+				const projectName = names?.pop();
+				const module = layer.projects.find(project => project.name === projectName)?.modules.find(module => module.name === moduleName);
+				return module ? Promise.resolve(module.binaries.map(binary => makeBinary(binary, element.id))) : Promise.resolve([]);
 			}
 			default:
 				return Promise.resolve([]);

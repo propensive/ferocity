@@ -14,6 +14,7 @@ export interface Module {
   name: string;
   dependencies: string[];
   sources: Source[];
+  binaries: string[];
 }
 
 export enum SourceType {
@@ -44,10 +45,12 @@ export namespace layer {
       'directory': source.dir.input,
       'type': getSourceType(source._type)
     }));
+    const getBinaries = (module: any) => module.binaries.map((binary: any) => binary.id.key);
     const getModules = (project: any) => project.modules.map((module: any) => ({
       name: module.id.key,
       dependencies: getDependencies(module),
-      sources: getSources(module)
+      sources: getSources(module),
+      binaries: getBinaries(module)
     }));
     const getProjects = (layer: any) => layer.projects.map((project: any) => ({
       name: project.id.key,
