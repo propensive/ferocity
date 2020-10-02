@@ -17,7 +17,7 @@ export interface Module {
 }
 
 export enum SourceType {
-  Local, Unknown 
+  Local, Repo, Unknown
 }
 
 export interface Source {
@@ -28,11 +28,21 @@ export interface Source {
 export namespace layer {
   // TODO: handle undefined workspace
   export function get(workspace: string | undefined): Promise<Layer> {
+    const getSourceType = (sourceType: string) => {
+      switch (sourceType) {
+        case 'LocalSource':
+          return SourceType.Local;
+        case 'RepoSource':
+          return SourceType.Repo;
+        default:
+          return SourceType.Unknown;
+      }
+    };
     const getDependencies = (module: any) => module.dependencies.map((dependency: any) => dependency.ref.id);
     // TODO: handle other types of sources
     const getSources = (module: any) => module.sources.map((source: any) => ({
       'directory': source.dir.input,
-      'type': source._type === 'LocalSource' ? SourceType.Local : SourceType.Unknown
+      'type': getSourceType(source._type)
     }));
     const getModules = (project: any) => project.modules.map((module: any) => ({
       name: module.id.key,
