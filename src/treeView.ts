@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import * as fury from './fury';
+import * as path from 'path';
 
 class LayerItem extends vscode.TreeItem {
-	constructor(public readonly label: string, readonly contextValue: string, readonly parentId?: string, command?: vscode.Command) {
+	constructor(public readonly label: string, readonly contextValue: string, readonly parentId?: string) {
 		super(label, LayerItem.getCollapsibleState(contextValue));
 		this.id = parentId ? `${parentId}/${label}` : label;
 		this.contextValue = contextValue;
-		this.command = command;
 	}
 
 	private static getCollapsibleState(contextValue: string) {
@@ -18,16 +18,35 @@ class LayerItem extends vscode.TreeItem {
 	}
 }
 
+function makeIconPath(iconName: string) {
+	return {
+		'dark': path.join(__filename, '..', '..', 'media', 'icons', 'dark', iconName + '.svg'),
+		'light': path.join(__filename, '..', '..', 'media', 'icons', 'light', iconName + '.svg')
+	};
+}
+
+function makeLayer(layerName: string) {
+	const layerItem = new LayerItem(layerName, 'furyLayer');
+	layerItem.iconPath = makeIconPath('versions');
+	return layerItem;
+}
+
 function makeProject(projectName: string, elementId?: string): LayerItem {
-	return new LayerItem(projectName, 'furyProject', elementId);
+	const layerItem = new LayerItem(projectName, 'furyProject', elementId);
+	layerItem.iconPath = makeIconPath('circuit-board');
+	return layerItem;
 }
 
 function makeModule(moduleName: string, elementId?: string): LayerItem {
-	return new LayerItem(moduleName, 'furyModule', elementId);
+	const layerItem = new LayerItem(moduleName, 'furyModule', elementId);
+	layerItem.iconPath = makeIconPath('circle-outline');
+	return layerItem;
 }
 
 function makeDependency(dependencyName: string, elementId?: string): LayerItem {
-	return new LayerItem(dependencyName, 'furyDependency', elementId);
+	const layerItem = new LayerItem(dependencyName, 'furyDependency', elementId);
+	layerItem.iconPath = makeIconPath('link-external');
+	return layerItem;
 }
 
 function makeSource(source: fury.Source, elementId?: string): LayerItem {
@@ -36,11 +55,18 @@ function makeSource(source: fury.Source, elementId?: string): LayerItem {
 		'command': 'revealInExplorer',
 		'arguments': [vscode.Uri.file(vscode.workspace.rootPath + '/' + source)]
 	});
+	const makeSourceIconPath = (source: fury.Source) => {
+		switch (source.type) {
+			case fury.SourceType.Local: return makeIconPath('file-symlink-directory');
+			case fury.SourceType.Repo: return makeIconPath('repo');
+		}
+	};
+	const layerItem = new LayerItem(source.directory, 'furySource', elementId);
+	layerItem.iconPath = makeSourceIconPath(source);
 	if (source.type === fury.SourceType.Local) {
-		return new LayerItem(source.directory, 'furySource', elementId, makeRevealCommand(source.directory));
-	} else {
-		return new LayerItem(source.directory, 'furySource', elementId);
+		layerItem.command = makeRevealCommand(source.directory);
 	}
+	return layerItem;
 }
 
 export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
@@ -64,7 +90,7 @@ export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
 		}
 
 		if (!element) {
-			return Promise.resolve([new LayerItem(layer.name, 'furyLayer')]);
+			return Promise.resolve([makeLayer(layer.name)]);
 		}
 
 		const names = element.id?.split('/');
