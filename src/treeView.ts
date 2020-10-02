@@ -1,12 +1,12 @@
-import { promisify } from 'util';
 import * as vscode from 'vscode';
 import * as fury from './fury';
 
 class LayerItem extends vscode.TreeItem {
-	constructor(public readonly label: string, readonly contextValue: string, readonly parentId?: string) {
+	constructor(public readonly label: string, readonly contextValue: string, readonly parentId?: string, command?: vscode.Command) {
 		super(label, LayerItem.getCollapsibleState(contextValue));
-		this.contextValue = contextValue;
 		this.id = parentId ? `${parentId}/${label}` : label;
+		this.contextValue = contextValue;
+		this.command = command;
 	}
 
 	private static getCollapsibleState(contextValue: string) {
@@ -15,6 +15,31 @@ class LayerItem extends vscode.TreeItem {
 		} else {
 			return vscode.TreeItemCollapsibleState.Collapsed;
 		}
+	}
+}
+
+function makeProject(projectName: string, elementId?: string): LayerItem {
+	return new LayerItem(projectName, 'furyProject', elementId);
+}
+
+function makeModule(moduleName: string, elementId?: string): LayerItem {
+	return new LayerItem(moduleName, 'furyModule', elementId);
+}
+
+function makeDependency(dependencyName: string, elementId?: string): LayerItem {
+	return new LayerItem(dependencyName, 'furyDependency', elementId);
+}
+
+function makeSource(source: fury.Source, elementId?: string): LayerItem {
+	const makeRevealCommand = (source: string) => ({
+		'title': 'Reveal',
+		'command': 'revealInExplorer',
+		'arguments': [vscode.Uri.file(vscode.workspace.rootPath + '/' + source)]
+	});
+	if (source.type === fury.SourceType.Local) {
+		return new LayerItem(source.directory, 'furySource', elementId, makeRevealCommand(source.directory));
+	} else {
+		return new LayerItem(source.directory, 'furySource', elementId);
 	}
 }
 
@@ -45,11 +70,11 @@ export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
 		const names = element.id?.split('/');
 		switch (element.contextValue) {
 			case 'furyLayer':
-				return Promise.resolve(layer.projects.map(project => new LayerItem(project.name, 'furyProject', element.id)));
+				return Promise.resolve(layer.projects.map(project => makeProject(project.name, element.id)));
 			case 'furyProject': {
 				const projectName = names?.pop();
 				const project = layer.projects.find(project => project.name === projectName);
-				return project ? Promise.resolve(project.modules.map(module => new LayerItem(module.name, 'furyModule', element.id))) : Promise.resolve([]);
+				return project ? Promise.resolve(project.modules.map(module => makeModule(module.name, element.id))) : Promise.resolve([]);
 			}
 			case 'furyModule': {
 				return Promise.resolve([
@@ -62,14 +87,14 @@ export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
 				const moduleName = names?.pop();
 				const projectName = names?.pop();
 				const module = layer.projects.find(project => project.name === projectName)?.modules.find(module => module.name === moduleName);
-				return module ? Promise.resolve(module.dependencies.map(dependency => new LayerItem(dependency, 'furyDependency', element.id))) : Promise.resolve([]);
+				return module ? Promise.resolve(module.dependencies.map(dependency => makeDependency(dependency, element.id))) : Promise.resolve([]);
 			}
 			case 'furySources': {
 				names?.pop(); // skip 'sources'
 				const moduleName = names?.pop();
 				const projectName = names?.pop();
 				const module = layer.projects.find(project => project.name === projectName)?.modules.find(module => module.name === moduleName);
-				return module ? Promise.resolve(module.sources.map(source => new LayerItem(source, 'furySource', element.id))) : Promise.resolve([]);
+				return module ? Promise.resolve(module.sources.map(source => makeSource(source, element.id))) : Promise.resolve([]);
 			}
 			default:
 				return Promise.resolve([]);

@@ -13,14 +13,27 @@ export interface Project {
 export interface Module {
   name: string;
   dependencies: string[];
-  sources: string[];
+  sources: Source[];
+}
+
+export enum SourceType {
+  Local, Unknown 
+}
+
+export interface Source {
+  directory: string;
+  type: SourceType;
 }
 
 export namespace layer {
   // TODO: handle undefined workspace
   export function get(workspace: string | undefined): Promise<Layer> {
     const getDependencies = (module: any) => module.dependencies.map((dependency: any) => dependency.ref.id);
-    const getSources = (module: any) => module.sources.map((source: any) => source.dir.input);
+    // TODO: handle other types of sources
+    const getSources = (module: any) => module.sources.map((source: any) => ({
+      'directory': source.dir.input,
+      'type': source._type === 'LocalSource' ? SourceType.Local : SourceType.Unknown
+    }));
     const getModules = (project: any) => project.modules.map((module: any) => ({
       name: module.id.key,
       dependencies: getDependencies(module),
