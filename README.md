@@ -1,11 +1,11 @@
-# Fury extension for Visual Studio Code 
+# Ferocity: a Fury extension for Visual Studio Code 
 
 ## Installation
 
 ### Clone the repository and change directory
 ```sh
-git clone git@github.com:propensive/fury-vscode.git
-cd ./fury-vscode
+git clone git@github.com:propensive/ferocity.git
+cd ./ferocity
 ```
 
 ### Install Typescript
