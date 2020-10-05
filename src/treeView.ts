@@ -45,7 +45,7 @@ function makeModule(moduleName: string, elementId?: string): LayerItem {
 
 function makeDependency(dependencyName: string, elementId?: string): LayerItem {
 	const layerItem = new LayerItem(dependencyName, 'furyDependency', elementId);
-	layerItem.iconPath = makeIconPath('link-external');
+	layerItem.iconPath = makeIconPath('link');
 	return layerItem;
 }
 
