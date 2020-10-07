@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fury from './fury';
 import * as path from 'path';
 
-class LayerItem extends vscode.TreeItem {
+export class LayerItem extends vscode.TreeItem {
 	constructor(public readonly label: string, readonly contextValue: string, readonly parentId?: string) {
 		super(label, LayerItem.getCollapsibleState(contextValue));
 		this.id = parentId ? `${parentId}/${label}` : label;

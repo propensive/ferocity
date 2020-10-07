@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { sortDependencies } from './dependencyGraph';
 
 export interface Layer {
   name: string;
@@ -24,6 +25,11 @@ export enum SourceType {
 export interface Source {
   directory: string;
   type: SourceType;
+}
+
+export function buildDependencyGraph(project: Project): string[][] {
+  const dependencies = project.modules.flatMap(module => module.dependencies.map(dependencyName => [dependencyName, project.name + '/' + module.name]));
+  return sortDependencies(dependencies);
 }
 
 export namespace layer {
@@ -57,7 +63,7 @@ export namespace layer {
       modules: getModules(project)
     }));
     console.log(`Get layer from workspace: ${workspace}`);
-    const furyServerUrl = 'http://localhost:6325/?path=' + workspace;
+    const furyServerUrl = 'http://localhost:6325/layer?path=' + workspace;
     return axios.get(furyServerUrl).then(response => ({
       name: '/',
       projects: getProjects(response.data)
