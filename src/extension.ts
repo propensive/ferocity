@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import * as fury from './fury';
 import { LayerItemsProvider, UniverseItemsProvider, LayerItem } from './treeView';
 import { extendMarkdownItWithMermaid } from './markdown';
@@ -41,6 +42,13 @@ export function activate(context: vscode.ExtensionContext) {
 		const uri = vscode.Uri.parse('fury:' + 'Dependency Graph');
 		await vscode.workspace.openTextDocument(uri);
 		vscode.commands.executeCommand('markdown.showPreview', uri);
+	});
+	vscode.commands.registerCommand('fury.example.showDiff', () => {
+		vscode.commands.executeCommand(
+			'vscode.diff',
+			vscode.Uri.parse(path.join(__filename, '..', '..', 'media', 'a.txt')),
+			vscode.Uri.parse(path.join(__filename, '..', '..', 'media', 'b.txt')),
+			'Example diff');
 	});
 
 	vscode.workspace.registerTextDocumentContentProvider(dependencyGraphScheme, new DependencyGraphContentProvider(context.workspaceState));

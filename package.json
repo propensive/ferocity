@@ -71,6 +71,11 @@
 				"command": "fury.module.addDependency",
 				"category": "Fury",
 				"title": "Add Dependency"
+			},
+			{
+				"command": "fury.example.showDiff",
+				"category": "Fury",
+				"title": "Show Diff"
 			}
 		],
 		"menus": {
