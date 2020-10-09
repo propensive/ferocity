@@ -32,6 +32,27 @@ export function buildDependencyGraph(project: Project): string[][] {
   return sortDependencies(dependencies);
 }
 
+export interface Universe {
+  projects: string[]
+}
+
+export namespace universe {
+  // TODO: handle undefined workspace
+  export function get(workspace: string | undefined): Promise<Universe> {
+    const getProjects = (universe: any) => universe.projects
+      .map((project: any) => project.id)
+      .sort((a: string, b: string) => a < b ? -1 : 1);
+
+    console.log(`Get universe from workspace: ${workspace}`);
+    const furyServerUrl = 'http://localhost:6325/universe?path=' + workspace;
+    return axios
+      .get(furyServerUrl)
+      .then(response => ({
+        projects: getProjects(response.data)
+      }));
+     }
+}
+
 export namespace layer {
   // TODO: handle undefined workspace
   export function get(workspace: string | undefined): Promise<Layer> {

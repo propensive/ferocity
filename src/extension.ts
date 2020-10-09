@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const layerItemsProvider = new LayerItemsProvider(context.workspaceState);
 	vscode.window.registerTreeDataProvider('furyLayerItems', layerItemsProvider);
 
-	const universeItemsProvider = new UniverseItemsProvider();
+	const universeItemsProvider = new UniverseItemsProvider(context.workspaceState);
 	vscode.window.registerTreeDataProvider('furyUniverseItems', universeItemsProvider);
 
 	vscode.commands.registerCommand('fury.layer.refresh', () => {
@@ -42,9 +42,17 @@ export function activate(context: vscode.ExtensionContext) {
 		await vscode.workspace.openTextDocument(uri);
 		vscode.commands.executeCommand('markdown.showPreview', uri);
 	});
+	vscode.commands.registerCommand('fury.universe.refresh', () => {
+		fury.universe.get(vscode.workspace.rootPath)
+			.then(universe => context.workspaceState.update('universe', universe))
+			.catch(handleConnectionError);
+		universeItemsProvider.refresh();
+	});
 
 	vscode.workspace.registerTextDocumentContentProvider(dependencyGraphScheme, new DependencyGraphContentProvider(context.workspaceState));
 
 	vscode.commands.executeCommand('fury.layer.refresh');
+	vscode.commands.executeCommand('fury.universe.refresh');
+
 	return extendMarkdownItWithMermaid();
 }

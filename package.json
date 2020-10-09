@@ -33,6 +33,10 @@
 			{
 				"view": "furyLayerItems",
 				"contents": "Cannot connect to the Fury server."
+			},
+			{
+				"view": "furyUniverseItems",
+				"contents": "Cannot connect to the Fury server."
 			}
 		],
 		"views": {
@@ -50,8 +54,8 @@
 		"commands": [
 			{
 				"command": "fury.layer.refresh",
-				"category": "Fury",
-				"title": "Refresh Layer",
+				"category": "fury",
+				"title": "Refresh layer",
 				"icon": {
 					"dark": "media/icons/dark/refresh.svg",
 					"light": "media/icons/light/refresh.svg"
@@ -60,7 +64,7 @@
 			{
 				"command": "fury.project.showDependencyGraph",
 				"category": "Fury",
-				"title": "Show dependency graph"
+				"title": "Show Dependency Graph"
 			},
 			{
 				"command": "fury.layer.addProject",
@@ -71,6 +75,15 @@
 				"command": "fury.module.addDependency",
 				"category": "Fury",
 				"title": "Add Dependency"
+			},
+			{
+				"command": "fury.universe.refresh",
+				"category": "Fury",
+				"title": "Refresh Universe",
+				"icon": {
+					"dark": "media/icons/dark/refresh.svg",
+					"light": "media/icons/light/refresh.svg"
+				}
 			}
 		],
 		"menus": {
@@ -88,12 +101,19 @@
 					"when": "false"
 				}
 			],
-			"view/item/context": [
+			"view/title": [
 				{
 					"command": "fury.layer.refresh",
-					"when": "view == furyLayerItems && viewItem == furyLayer",
-					"group": "inline"
+					"when": "view == furyLayerItems",
+					"group": "navigation"
 				},
+				{
+					"command": "fury.universe.refresh",
+					"when": "view == furyUniverseItems",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
 				{
 					"command": "fury.layer.addProject",
 					"when": "view == furyLayerItems && viewItem == furyLayer"
