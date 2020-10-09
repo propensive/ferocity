@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fury from './fury';
 import * as path from 'path';
+import { prependOnceListener } from 'process';
 
 export class LayerItem extends vscode.TreeItem {
 	constructor(public readonly label: string, readonly contextValue: string, readonly parentId?: string) {
@@ -127,12 +128,36 @@ export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
 	}
 }
 
+
+
 export class UniverseItemsProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+	private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined> = new vscode.EventEmitter<vscode.TreeItem | undefined>();
+	readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem | undefined> = this._onDidChangeTreeData.event;
+
+	constructor(private workspaceState: vscode.Memento) { }
+
+	refresh(): void {
+		this._onDidChangeTreeData.fire(undefined);
+	}
+
 	getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
 		return element;
 	}
 
 	getChildren(element: vscode.TreeItem): Thenable<vscode.TreeItem[]> {
-		return Promise.resolve([]);
+		const universe: fury.Universe | undefined = this.workspaceState.get('universe');
+		if (!universe) {
+			return Promise.resolve([]);
+		}
+
+		if (!element) {
+			return Promise.resolve(makeUniverse(universe));
+		} else {
+			return Promise.resolve([]);
+		}
+
+		function makeUniverse(universe: fury.Universe): vscode.TreeItem[] {
+			return universe.projects.map(projectName => new vscode.TreeItem(projectName));
+		}
 	}
 }
