@@ -50,6 +50,7 @@
 		"commands": [
 			{
 				"command": "fury.layer.refresh",
+				"category": "Fury",
 				"title": "Refresh Layer",
 				"icon": {
 					"dark": "media/icons/dark/refresh.svg",
@@ -58,18 +59,35 @@
 			},
 			{
 				"command": "fury.project.showDependencyGraph",
+				"category": "Fury",
 				"title": "Show dependency graph"
 			},
 			{
 				"command": "fury.layer.addProject",
+				"category": "Fury",
 				"title": "Add Project"
 			},
 			{
 				"command": "fury.module.addDependency",
+				"category": "Fury",
 				"title": "Add Dependency"
 			}
 		],
 		"menus": {
+			"commandPalette": [
+				{
+					"command": "fury.project.showDependencyGraph",
+					"when": "false"
+				},
+				{
+					"command": "fury.layer.addProject",
+					"when": "false"
+				},
+				{
+					"command": "fury.module.addDependency",
+					"when": "false"
+				}
+			],
 			"view/item/context": [
 				{
 					"command": "fury.layer.refresh",
