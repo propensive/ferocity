@@ -43,8 +43,86 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.executeCommand('markdown.showPreview', uri);
 	});
 
+	/**
+	 * Webview example.
+	 */
+	let webviewPanel: vscode.WebviewPanel | undefined = undefined;
+	vscode.commands.registerCommand('fury.example.webview', () => {
+		webviewPanel = vscode.window.createWebviewPanel(
+			'furyWebview',
+			'Fury Webview',
+			vscode.ViewColumn.One,
+			{
+				enableScripts: true
+			}
+		);
+
+		webviewPanel.webview.html = getWebviewContent();
+		webviewPanel.webview.onDidReceiveMessage(
+			message => {
+				switch (message.command) {
+					case 'inverted':
+						vscode.window.showInformationMessage('Counter inverted!');
+						return;
+				}
+			},
+			undefined,
+			context.subscriptions
+		);
+	});
+	vscode.commands.registerCommand('fury.example.invert', () => {
+		if (!webviewPanel) {
+			return;
+		}
+		webviewPanel.webview.postMessage({ command: 'invert' });
+	});
+
 	vscode.workspace.registerTextDocumentContentProvider(dependencyGraphScheme, new DependencyGraphContentProvider(context.workspaceState));
 
 	vscode.commands.executeCommand('fury.layer.refresh');
 	return extendMarkdownItWithMermaid();
+}
+
+function getWebviewContent() {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Coding</title>
+</head>
+<body>
+  <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" onclick="stopCounting()" />
+  <h1 id="counter">0</h1>
+
+  <script>	
+    const vscode = acquireVsCodeApi();
+		const counter = document.getElementById('counter');
+
+    let interval = 1;
+		let count = 0;
+		
+    setInterval(() => {
+      count += interval;
+      counter.textContent = count;
+		}, 100);
+
+    window.addEventListener('message', event => {
+      const message = event.data; 
+      switch (message.command) {
+        case 'invert':
+				interval *= -1;
+				
+        vscode.postMessage({
+          command: 'inverted'
+        });
+        break;
+      }
+    });
+    function stopCounting() {
+      interval = 0;
+    }
+  </script>
+</body>
+</html>`;
 }

@@ -71,6 +71,16 @@
 				"command": "fury.module.addDependency",
 				"category": "Fury",
 				"title": "Add Dependency"
+			},
+			{
+				"command": "fury.example.webview",
+				"category": "Fury",
+				"title": "Webview"
+			},
+			{
+				"command": "fury.example.invert",
+				"category": "Fury",
+				"title": "Invert"
 			}
 		],
 		"menus": {
