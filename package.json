@@ -54,8 +54,8 @@
 		"commands": [
 			{
 				"command": "fury.layer.refresh",
-				"category": "fury",
-				"title": "Refresh layer",
+				"category": "Fury",
+				"title": "Refresh Layer",
 				"icon": {
 					"dark": "media/icons/dark/refresh.svg",
 					"light": "media/icons/light/refresh.svg"
