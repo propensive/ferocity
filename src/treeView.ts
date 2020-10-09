@@ -109,32 +109,17 @@ export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
 				return project ? Promise.resolve(project.modules.map(module => makeModule(module.name, element.id))) : Promise.resolve([]);
 			}
 			case 'furyModule': {
-				return Promise.resolve([
-					new LayerItem('dependencies', 'furyDependencies', element.id),
-					new LayerItem('sources', 'furySources', element.id),
-					new LayerItem('binaries', 'furyBinaries', element.id)
-				]);
-			}
-			case 'furyDependencies': {
-				names?.pop(); // skip 'dependencies'
 				const moduleName = names?.pop();
 				const projectName = names?.pop();
 				const module = layer.projects.find(project => project.name === projectName)?.modules.find(module => module.name === moduleName);
-				return module ? Promise.resolve(module.dependencies.map(dependency => makeDependency(dependency, element.id))) : Promise.resolve([]);
-			}
-			case 'furySources': {
-				names?.pop(); // skip 'sources'
-				const moduleName = names?.pop();
-				const projectName = names?.pop();
-				const module = layer.projects.find(project => project.name === projectName)?.modules.find(module => module.name === moduleName);
-				return module ? Promise.resolve(module.sources.map(source => makeSource(source, element.id))) : Promise.resolve([]);
-			}
-			case 'furyBinaries': {
-				names?.pop(); // skip 'binaries'
-				const moduleName = names?.pop();
-				const projectName = names?.pop();
-				const module = layer.projects.find(project => project.name === projectName)?.modules.find(module => module.name === moduleName);
-				return module ? Promise.resolve(module.binaries.map(binary => makeBinary(binary, element.id))) : Promise.resolve([]);
+				if (!module) {
+					return Promise.resolve([]);
+				} else {
+					const dependencies = module.dependencies.map(dependency => makeDependency(dependency, element.id));
+					const sources = module.sources.map(source => makeSource(source, element.id));
+					const binaries = module.binaries.map(binary => makeBinary(binary, element.id));
+					return Promise.resolve(dependencies.concat(sources).concat(binaries));
+				}
 			}
 			default:
 				return Promise.resolve([]);
