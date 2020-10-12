@@ -18,13 +18,10 @@ export interface Module {
   binaries: string[];
 }
 
-export enum SourceType {
-  Local, Repo, Unknown
-}
-
 export interface Source {
-  directory: string;
-  type: SourceType;
+  id: string;
+  path: string;
+  isLocal: boolean;
 }
 
 export function buildDependencyGraph(project: Project): string[][] {
@@ -48,40 +45,34 @@ export namespace universe {
     return axios
       .get(furyServerUrl)
       .then(response => ({
-        projects: getProjects(response.data)
-      }));
-     }
+        projects: getProjects(response.data.result)
+      }))
+      .catch(error => {
+        console.log(`Cannot get universe from workspace: ${error}.`);
+        return error;
+      });
+  }
 }
 
 export namespace layer {
   // TODO: handle undefined workspace
   export function get(workspace: string | undefined): Promise<Layer> {
-    const getSourceType = (sourceType: string) => {
-      switch (sourceType) {
-        case 'LocalSource':
-          return SourceType.Local;
-        case 'RepoSource':
-          return SourceType.Repo;
-        default:
-          return SourceType.Unknown;
-      }
-    };
     const getDependencies = (module: any) => module.dependencies
-      .map((dependency: any) => dependency.ref.id)
       .sort((a: string, b: string) => a < b ? -1 : 1);
     // TODO: handle other types of sources
     const getSources = (module: any) => module.sources
       .map((source: any) => ({
-        'directory': source.dir.input,
-        'type': getSourceType(source._type)
+        id: source.id,
+        path: source.path,
+        isLocal: source.editable
       }))
-      .sort((a: Source, b: Source) => a.directory < b.directory ? -1 : 1);
+      .sort((a: Source, b: Source) => a.id < b.id ? -1 : 1);
     const getBinaries = (module: any) => module.binaries
-      .map((binary: any) => binary.id.key)
+      .map((binary: any) => binary.id)
       .sort((a: string, b: string) => a < b ? -1 : 1);
     const getModules = (project: any) => project.modules
       .map((module: any) => ({
-        name: module.id.key,
+        name: module.id,
         dependencies: getDependencies(module),
         sources: getSources(module),
         binaries: getBinaries(module)
@@ -89,7 +80,7 @@ export namespace layer {
       .sort((a: Module, b: Module) => a.name < b.name ? -1 : 1);
     const getProjects = (layer: any) => layer.projects
       .map((project: any) => ({
-        name: project.id.key,
+        name: project.id,
         modules: getModules(project)
       }))
       .sort((a: Project, b: Project) => a.name < b.name ? -1 : 1);
@@ -99,7 +90,11 @@ export namespace layer {
       .get(furyServerUrl)
       .then(response => ({
         name: '/',
-        projects: getProjects(response.data)
-      }));
+        projects: getProjects(response.data.result)
+      }))
+      .catch(error => {
+        console.log(`Cannot get layer from workspace: ${error}.`);
+        return error;
+      });
   }
 }
