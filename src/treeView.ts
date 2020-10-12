@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as fury from './fury';
 import * as path from 'path';
-import { prependOnceListener } from 'process';
 
 export class LayerItem extends vscode.TreeItem {
 	constructor(public readonly label: string, readonly contextValue: string, readonly parentId?: string) {
@@ -51,22 +50,10 @@ function makeDependency(dependencyName: string, elementId?: string): LayerItem {
 }
 
 function makeSource(source: fury.Source, elementId?: string): LayerItem {
-	const makeRevealCommand = (source: string) => ({
-		'title': 'Reveal',
-		'command': 'revealInExplorer',
-		'arguments': [vscode.Uri.file(vscode.workspace.rootPath + '/' + source)]
-	});
-	const makeSourceIconPath = (source: fury.Source) => {
-		switch (source.type) {
-			case fury.SourceType.Local: return makeIconPath('file-symlink-directory');
-			case fury.SourceType.Repo: return makeIconPath('repo');
-		}
-	};
-	const layerItem = new LayerItem(source.directory, 'furySource', elementId);
+	const makeSourceIconPath = (source: fury.Source) => source.isLocal ? makeIconPath('file-symlink-directory') : makeIconPath('repo');
+
+	const layerItem = new LayerItem(source.id, 'furySource', elementId);
 	layerItem.iconPath = makeSourceIconPath(source);
-	if (source.type === fury.SourceType.Local) {
-		layerItem.command = makeRevealCommand(source.directory);
-	}
 	return layerItem;
 }
 
