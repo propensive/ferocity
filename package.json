@@ -1,6 +1,6 @@
 {
-	"name": "fury",
-	"displayName": "Fury",
+	"name": "ferocity",
+	"displayName": "Ferocity",
 	"description": "Experimental dependency manager and build tool for Scala.",
 	"version": "0.0.1",
 	"publisher": "Propensive",
@@ -10,7 +10,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/propensive/fury-vscode"
+		"url": "https://github.com/propensive/ferocity"
 	},
 	"categories": [
 		"Programming Languages"
