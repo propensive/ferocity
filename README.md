@@ -23,12 +23,12 @@ npm install -g vsce
 and then:
 ```sh
 npm install
-vsce package -o ./fury.vsix
+vsce package -o ./ferocity.vsix
 ```
 
 It will publish the extension to the current directory.
 
 ### Install from VSIX
 ```
-code --install-extension ./fury.vsix
+code --install-extension ./ferocity.vsix
 ```
