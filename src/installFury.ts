@@ -14,7 +14,7 @@ export default function installFury(): Promise<string> {
 
     return mkdirp(furyArchiveDirectory)
       .then(() => download(furyUrl, furyArchive))
-      .then(path => decompress(path, furyDestination).then(() => resolve('Fury installed: ' + furyDestination)))
+      .then(path => decompress(path, furyDestination).then(() => resolve(furyDestination)))
       .finally(() => fs.unlinkSync(furyArchive))
       .catch(reject);
   });
