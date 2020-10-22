@@ -1,22 +1,11 @@
 import * as path from 'path';
-import fetch from 'node-fetch';
-import * as fs from 'fs';
-import mkdirp = require('mkdirp');
 import * as pcp from 'promisify-child-process';
 import * as os from 'os';
-import { promisify } from 'util';
-import { pipeline } from 'stream';
+import * as fs from 'fs';
+import mkdirp = require('mkdirp');
+import download from './download';
 
 const defaultJabbaVersion = "0.11.2";
-
-function sleep(milliseconds: number) {
-  var start = new Date().getTime();
-  for (var i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds) {
-      break;
-    }
-  }
-}
 
 export default function installJava(javaVersion: string, jabbaVersion: string = defaultJabbaVersion): Promise<string> {
   const binDirectory = path.join(os.homedir(), '.ferocity', 'bin');
@@ -27,6 +16,7 @@ export default function installJava(javaVersion: string, jabbaVersion: string = 
   // TODO: check if jabba is already installed and if Java
   return mkdirp(binDirectory)
     .then(() => download(jabbaUrl, jabbaPath))
+    .then(outputFile => fs.chmodSync(outputFile, 755))
     .then(() => {
       return pcp.exec(`${jabbaPath} ls-remote`);
     })
@@ -60,31 +50,6 @@ function jabbaBinaryName(): string {
   } else {
     return 'jabba';
   }
-}
-
-function download(url: string, outputFile: string): Promise<string> {
-  return fetch(url)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Error while downloading Java from ${url}`);
-      }
-      return new Promise<string>((resolve, reject) => {
-        pipeline(
-          response.body,
-          fs.createWriteStream(outputFile)
-            .on('close', () => {
-              fs.chmodSync(outputFile, 755);
-              resolve('Jabba installation succeeded: ' + outputFile);
-            }),
-          error => {
-            if (error !== undefined) {
-              reject(error);
-            }
-          }
-        );
-      });
-    })
-    .then(() => outputFile);
 }
 
 function outputToString(out: Buffer | string | null | undefined): string {
