@@ -1,72 +1,41 @@
 import * as vscode from 'vscode';
+import * as os from 'os';
+import * as path from 'path';
+import * as pcp from 'promisify-child-process';
 import * as fury from './fury';
 import { LayerItemsProvider, UniverseItemsProvider, LayerItem } from './treeView';
 import { extendMarkdownItWithMermaid } from './markdown';
 import { DependencyGraphContentProvider, dependencyGraphScheme } from './dependencyGraph';
-import locateJavaHome from './locateJavaHome';
-import installJava from './installJava';
-import installFury from './installFury';
+import installJavaIfNeeded from './installJava';
+import installFuryIfNeeded from './installFury';
+
+const furyBin = path.join(os.homedir(), '.ferocity', 'fury', 'bin', 'fury'); 
 
 function handleConnectionError(error: any) {
 	vscode.window.showErrorMessage('Cannot connect to the Fury server.');
 }
 
-function installJavaIfNeeded(): Promise<string> {
-	return new Promise((resolve, reject) => {
-		locateJavaHome(vscode.workspace.getConfiguration("ferocity").get("javaHome"))
-			.then(javaHome => resolve(javaHome))
+function setUpFerocity(): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: `Setting up Ferocity`,
+			cancellable: true,
+		}, () => Promise.all([installJavaIfNeeded(), installFuryIfNeeded()])
+			.then(result => {
+				const [javaPath, furyPath] = result;
+				console.log('Java installation succeeded: ' + javaPath);
+				console.log('Fury installation succeeded: ' + furyPath);
+				resolve();
+			})
 			.catch(error => {
-				console.log(error);
-				vscode.window.withProgress(
-					{
-						location: vscode.ProgressLocation.Notification,
-						title: `Installing Java (JDK 8), please wait...`,
-						cancellable: true,
-					},
-					() => installJava("adopt@1.8").then(resolve).catch(reject)
-				);
-			});
+				console.log('Setting up failed: ' + error);
+				reject();
+			}));
 	});
 }
 
-function installFuryIfNeeded(): Promise<string> {
-	return new Promise((resolve, reject) => {
-		vscode.window.withProgress(
-			{
-				location: vscode.ProgressLocation.Notification,
-				title: `Installing Fury, please wait...`,
-				cancellable: true,
-			},
-			() => installFury().then(resolve).catch(reject)
-		);
-	});
-}
-
-export function activate(context: vscode.ExtensionContext) {
-	console.log('Fury extension is active.');
-	console.log('Workspace root path: ' + vscode.workspace.rootPath);
-
-	console.log('Installing Java');
-	installJavaIfNeeded()
-		.then(result => {
-			console.log('Java installation succeeded: ' + result);
-			vscode.window.showInformationMessage('Java (JDK 8) installed successfully');
-		})
-		.catch(error => {
-			console.log('Java installation failed: ' + error);
-			vscode.window.showErrorMessage('Java (JDK 8) installation failed');
-		});
-
-	console.log('Installing Fury');
-	installFuryIfNeeded()
-		.then(result => {
-			console.log('Fury installation succeeded: ' + result);
-			vscode.window.showInformationMessage('Fury installed successfully');
-		})
-		.catch(error => {
-			console.log('Fury installation failed: ' + error);
-			vscode.window.showErrorMessage('Fury installation failed');
-		});
+function runFerocity(context: vscode.ExtensionContext) {
 
 	const layerItemsProvider = new LayerItemsProvider(context.workspaceState);
 	vscode.window.registerTreeDataProvider('furyLayerItems', layerItemsProvider);
@@ -109,6 +78,21 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.commands.executeCommand('fury.layer.refresh');
 	vscode.commands.executeCommand('fury.universe.refresh');
+}
+
+export function activate(context: vscode.ExtensionContext) {
+	console.log('Fury extension is active.');
+	console.log('Workspace root path: ' + vscode.workspace.rootPath);
+
+	setUpFerocity()
+		.then(() => {
+			vscode.window.showInformationMessage('Ferocity set up succeeded');
+		})
+		.then(() => pcp.exec(`${furyBin} about`))
+		.then(() => runFerocity(context))
+		.catch(() => {
+			vscode.window.showErrorMessage('Ferocity set up failed');
+		});
 
 	return extendMarkdownItWithMermaid();
 }

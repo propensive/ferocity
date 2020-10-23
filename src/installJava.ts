@@ -1,32 +1,43 @@
+import * as fs from 'fs';
+import * as mkdirp from 'mkdirp';
+import * as os from 'os';
 import * as path from 'path';
 import * as pcp from 'promisify-child-process';
-import * as os from 'os';
-import * as fs from 'fs';
-import mkdirp = require('mkdirp');
 import download from './download';
 
-const defaultJabbaVersion = "0.11.2";
+export default function installJavaIfNeeded(): Promise<string> {
+  const ferocityDirectory = path.join(os.homedir(), '.ferocity');
 
-export default function installJava(javaVersion: string, jabbaVersion: string = defaultJabbaVersion): Promise<string> {
-  const binDirectory = path.join(os.homedir(), '.ferocity', 'bin');
+  const javaVersion = 'adopt@1.8';
+  const javaDirectory = path.join(ferocityDirectory, 'java');
 
+  const jabbaVersion = '0.11.2';
   const jabbaUrl = `https://github.com/shyiko/jabba/releases/download/${jabbaVersion}/jabba-${jabbaVersion}-${jabbaUrlSuffix()}`;
-  const jabbaPath = path.join(binDirectory, jabbaBinaryName());
+  const jabbaDirectory = path.join(ferocityDirectory, 'jabba', 'bin');
+  const jabbaBinPath = path.join(jabbaDirectory, jabbaBinaryName());
 
-  // TODO: check if jabba is already installed and if Java
-  return mkdirp(binDirectory)
-    .then(() => download(jabbaUrl, jabbaPath))
-    .then(outputFile => fs.chmodSync(outputFile, 755))
-    .then(() => {
-      return pcp.exec(`${jabbaPath} ls-remote`);
-    })
-    .then(out => outputToString(out.stdout)
-      .split("\n")
-      .filter((str) => str.includes(javaVersion))[0]
-      .trim())
-    .then(java => pcp.spawn(`${jabbaPath}`, ['install', java], {})
-      .then(() => pcp.exec(`${jabbaPath} which --home ${java}`))
-      .then(e => outputToString(e.stdout).trim()));
+  if (fs.existsSync(javaDirectory)) {
+    console.log('Java already installed.');
+    return Promise.resolve(javaDirectory);
+  } else {
+    return mkdirp(jabbaDirectory)
+      .then(() => {
+        if (fs.existsSync(jabbaBinPath)) {
+          console.log('Jabba already installed.');
+          return Promise.resolve(jabbaBinPath);
+        } else {
+          return download(jabbaUrl, jabbaBinPath);
+        }
+      })
+      .then(() => fs.chmodSync(jabbaBinPath, 755))
+      .then(() => pcp.exec(`${jabbaBinPath} ls-remote`))
+      .then(output => outputToString(output.stdout)
+        .split("\n")
+        .filter((str) => str.includes(javaVersion))[0]
+        .trim())
+      .then(java => pcp.spawn(`${jabbaBinPath}`, ['install', java, '-o', javaDirectory], {}))
+      .then(() => javaDirectory);
+  }
 }
 
 function jabbaUrlSuffix(): string {
