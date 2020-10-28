@@ -1,16 +1,41 @@
 import * as vscode from 'vscode';
+import * as os from 'os';
+import * as path from 'path';
+import * as pcp from 'promisify-child-process';
 import * as fury from './fury';
 import { LayerItemsProvider, UniverseItemsProvider, LayerItem } from './treeView';
 import { extendMarkdownItWithMermaid } from './markdown';
 import { DependencyGraphContentProvider, dependencyGraphScheme } from './dependencyGraph';
+import installJavaIfNeeded from './installJava';
+import installFuryIfNeeded from './installFury';
+
+const furyBin = path.join(os.homedir(), '.ferocity', 'fury', 'bin', 'fury'); 
 
 function handleConnectionError(error: any) {
 	vscode.window.showErrorMessage('Cannot connect to the Fury server.');
 }
 
-export function activate(context: vscode.ExtensionContext) {
-	console.log('Fury extension is active.');
-	console.log('Workspace root path: ' + vscode.workspace.rootPath);
+function setUpFerocity(): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: `Setting up Ferocity`,
+			cancellable: true,
+		}, () => Promise.all([installJavaIfNeeded(), installFuryIfNeeded()])
+			.then(result => {
+				const [javaPath, furyPath] = result;
+				console.log('Java installation succeeded: ' + javaPath);
+				console.log('Fury installation succeeded: ' + furyPath);
+				resolve();
+			})
+			.catch(error => {
+				console.log('Setting up failed: ' + error);
+				reject();
+			}));
+	});
+}
+
+function runFerocity(context: vscode.ExtensionContext) {
 
 	const layerItemsProvider = new LayerItemsProvider(context.workspaceState);
 	vscode.window.registerTreeDataProvider('furyLayerItems', layerItemsProvider);
@@ -53,6 +78,21 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.commands.executeCommand('fury.layer.refresh');
 	vscode.commands.executeCommand('fury.universe.refresh');
+}
+
+export function activate(context: vscode.ExtensionContext) {
+	console.log('Fury extension is active.');
+	console.log('Workspace root path: ' + vscode.workspace.rootPath);
+
+	setUpFerocity()
+		.then(() => {
+			vscode.window.showInformationMessage('Ferocity set up succeeded');
+		})
+		.then(() => pcp.exec(`${furyBin} about`))
+		.then(() => runFerocity(context))
+		.catch(() => {
+			vscode.window.showErrorMessage('Ferocity set up failed');
+		});
 
 	return extendMarkdownItWithMermaid();
 }

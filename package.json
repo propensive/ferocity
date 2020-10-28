@@ -138,12 +138,23 @@
 		"pretest": "npm run compile && npm run lint",
 		"test": "node ./out/test/runTest.js"
 	},
+	"dependencies": {
+		"axios": "0.19.0",
+		"decompress": "^4.2.1",
+		"markdown-it-container": "^3.0.0",
+		"mkdirp": "^1.0.3",
+		"node-fetch": "^2.6.0",
+		"promisify-child-process": "^3.1.3"
+	},
 	"devDependencies": {
 		"@typescript-eslint/parser": "^4.1.1",
 		"@typescript-eslint/eslint-plugin": "^4.1.1",
+		"@types/decompress": "^4.2.3",
 		"@types/glob": "^7.1.3",
+		"@types/mkdirp": "^1.0.0",
 		"@types/mocha": "^8.0.0",
 		"@types/node": "^14.0.27",
+		"@types/node-fetch": "^2.5.4",
 		"@types/vscode": "^1.43.0",
 		"eslint": "^7.9.0",
 		"glob": "^7.1.6",
@@ -152,8 +163,7 @@
 		"typescript": "^4.0.2",
 		"vscode-test": "^1.4.0"
 	},
-	"dependencies": {
-		"axios": "0.19.0",
-		"markdown-it-container": "^3.0.0"
-	}
+	"extensionDependencies": [
+		"scalameta.metals"
+	]
 }
