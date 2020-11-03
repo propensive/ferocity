@@ -49,8 +49,8 @@ function makeDependency(dependencyName: string, elementId?: string): LayerItem {
 	return layerItem;
 }
 
-function makeSource(source: fury.Source, elementId?: string): LayerItem {
-	const makeSourceIconPath = (source: fury.Source) => source.isLocal ? makeIconPath('file-symlink-directory') : makeIconPath('repo');
+function makeSource(source: fury.layer.Source, elementId?: string): LayerItem {
+	const makeSourceIconPath = (source: fury.layer.Source) => source.isLocal ? makeIconPath('file-symlink-directory') : makeIconPath('repo');
 
 	const layerItem = new LayerItem(source.id, 'furySource', elementId);
 	layerItem.iconPath = makeSourceIconPath(source);
@@ -78,7 +78,7 @@ export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
 	}
 
 	getChildren(element: LayerItem): Thenable<LayerItem[]> {
-		const layer: fury.Layer | undefined = this.workspaceState.get('layer');
+		const layer: fury.layer.Layer | undefined = this.workspaceState.get('layer');
 		if (!layer) {
 			return Promise.resolve([]);
 		}
@@ -132,7 +132,7 @@ export class UniverseItemsProvider implements vscode.TreeDataProvider<vscode.Tre
 	}
 
 	getChildren(element: vscode.TreeItem): Thenable<vscode.TreeItem[]> {
-		const universe: fury.Universe | undefined = this.workspaceState.get('universe');
+		const universe: fury.universe.Universe | undefined = this.workspaceState.get('universe');
 		if (!universe) {
 			return Promise.resolve([]);
 		}
@@ -143,7 +143,7 @@ export class UniverseItemsProvider implements vscode.TreeDataProvider<vscode.Tre
 			return Promise.resolve([]);
 		}
 
-		function makeUniverse(universe: fury.Universe): vscode.TreeItem[] {
+		function makeUniverse(universe: fury.universe.Universe): vscode.TreeItem[] {
 			return universe.projects.map(projectName => new vscode.TreeItem(projectName));
 		}
 	}

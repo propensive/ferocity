@@ -1,39 +1,16 @@
 import axios from 'axios';
 import { sortDependencies } from './dependencyGraph';
 
-export interface Layer {
-  name: string;
-  projects: Project[];
-}
-
-export interface Project {
-  name: string;
-  modules: Module[];
-}
-
-export interface Module {
-  name: string;
-  dependencies: string[];
-  sources: Source[];
-  binaries: string[];
-}
-
-export interface Source {
-  id: string;
-  path: string;
-  isLocal: boolean;
-}
-
-export function buildDependencyGraph(project: Project): string[][] {
+export function buildDependencyGraph(project: layer.Project): string[][] {
   const dependencies = project.modules.flatMap(module => module.dependencies.map(dependencyName => [dependencyName, project.name + '/' + module.name]));
   return sortDependencies(dependencies);
 }
 
-export interface Universe {
-  projects: string[]
-}
-
 export namespace universe {
+  export interface Universe {
+    projects: string[]
+  }
+
   // TODO: handle undefined workspace
   export function get(workspace: string | undefined): Promise<Universe> {
     const getProjects = (universe: any) => universe.projects
@@ -55,6 +32,29 @@ export namespace universe {
 }
 
 export namespace layer {
+  export interface Layer {
+    name: string;
+    projects: Project[];
+  }
+
+  export interface Project {
+    name: string;
+    modules: Module[];
+  }
+
+  export interface Module {
+    name: string;
+    dependencies: string[];
+    sources: Source[];
+    binaries: string[];
+  }
+
+  export interface Source {
+    id: string;
+    path: string;
+    isLocal: boolean;
+  }
+
   // TODO: handle undefined workspace
   export function get(workspace: string | undefined): Promise<Layer> {
     const getDependencies = (module: any) => module.dependencies

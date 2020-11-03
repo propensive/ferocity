@@ -8,10 +8,12 @@ import { extendMarkdownItWithMermaid } from './markdown';
 import { DependencyGraphContentProvider, dependencyGraphScheme } from './dependencyGraph';
 import installJavaIfNeeded from './installJava';
 import installFuryIfNeeded from './installFury';
+import { setUpFerocity } from './setUp';
 
-const furyBin = path.join(os.homedir(), '.ferocity', 'fury', 'bin', 'fury'); 
+const furyBin = path.join(os.homedir(), '.ferocity', 'fury', 'bin', 'fury');
 
 function handleConnectionError(error: any) {
+	console.log('Connection error: ' + error);
 	vscode.window.showErrorMessage('Cannot connect to the Fury server.');
 }
 
@@ -58,8 +60,8 @@ function runFerocity(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Module / Add Dependency');
 	});
 	vscode.commands.registerCommand('fury.project.showDependencyGraph', async (projectItem: LayerItem) => {
-		const layer: fury.Layer | undefined = context.workspaceState.get('layer');
-		const project: fury.Project | undefined = layer ? layer.projects.find(project => project.name === projectItem.label) : undefined;
+		const layer: fury.layer.Layer | undefined = context.workspaceState.get('layer');
+		const project: fury.layer.Project | undefined = layer ? layer.projects.find(project => project.name === projectItem.label) : undefined;
 		const dependencies = project ? fury.buildDependencyGraph(project) : [];
 		context.workspaceState.update('dependencies', dependencies);
 
@@ -88,11 +90,10 @@ export function activate(context: vscode.ExtensionContext) {
 		.then(() => {
 			vscode.window.showInformationMessage('Ferocity set up succeeded');
 		})
-		.then(() => pcp.exec(`${furyBin} about`))
+		// .then(() => pcp.exec(`${furyBin} about`))
+		.then(() => pcp.exec('fury about'))
 		.then(() => runFerocity(context))
-		.catch(() => {
-			vscode.window.showErrorMessage('Ferocity set up failed');
-		});
+		.catch(() => vscode.window.showErrorMessage('Ferocity set up failed'));
 
 	return extendMarkdownItWithMermaid();
 }
