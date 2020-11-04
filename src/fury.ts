@@ -1,36 +1,6 @@
 import axios from 'axios';
 import { sortDependencies } from './dependencyGraph';
 
-export function buildDependencyGraph(project: layer.Project): string[][] {
-  const dependencies = project.modules.flatMap(module => module.dependencies.map(dependencyName => [dependencyName, project.name + '/' + module.name]));
-  return sortDependencies(dependencies);
-}
-
-export namespace universe {
-  export interface Universe {
-    projects: string[]
-  }
-
-  // TODO: handle undefined workspace
-  export function get(workspace: string | undefined): Promise<Universe> {
-    const getProjects = (universe: any) => universe.projects
-      .map((project: any) => project.id)
-      .sort((a: string, b: string) => a < b ? -1 : 1);
-
-    console.log(`Get universe from workspace: ${workspace}`);
-    const furyServerUrl = 'http://localhost:6325/universe?path=' + workspace;
-    return axios
-      .get(furyServerUrl)
-      .then(response => ({
-        projects: getProjects(response.data.result)
-      }))
-      .catch(error => {
-        console.log(`Cannot get universe from workspace: ${error}.`);
-        return error;
-      });
-  }
-}
-
 export namespace layer {
   export interface Layer {
     name: string;
@@ -55,22 +25,40 @@ export namespace layer {
     isLocal: boolean;
   }
 
-  // TODO: handle undefined workspace
   export function get(workspace: string | undefined): Promise<Layer> {
-    const getDependencies = (module: any) => module.dependencies
-      .sort((a: string, b: string) => a < b ? -1 : 1);
-    // TODO: handle other types of sources
-    const getSources = (module: any) => module.sources
-      .map((source: any) => ({
-        id: source.id,
-        path: source.path,
-        isLocal: source.editable
+    console.log(`Getting a layer for workspace: ${workspace}.`);
+    if (!workspace) {
+      return Promise.reject('Unable to get a layer. Workspace undefined.');
+    }
+
+    const layerUrl = 'http://localhost:6325/layer?path=' + workspace;
+    return axios
+      .get(layerUrl)
+      .then(response => getLayer(response.data.result))
+      .catch(error => {
+        console.log(`Unable to get a layer: ${error}.`);
+        return error;
+      });
+  }
+
+  function getLayer(result: any) {
+    return {
+      name: '/',
+      projects: getProjects(result)
+    };
+  }
+
+  function getProjects(layer: any) {
+    return layer.projects
+      .map((project: any) => ({
+        name: project.id,
+        modules: getModules(project)
       }))
-      .sort((a: Source, b: Source) => a.id < b.id ? -1 : 1);
-    const getBinaries = (module: any) => module.binaries
-      .map((binary: any) => binary.id)
-      .sort((a: string, b: string) => a < b ? -1 : 1);
-    const getModules = (project: any) => project.modules
+      .sort((a: Project, b: Project) => a.name < b.name ? -1 : 1);
+  }
+
+  function getModules(project: any) {
+    return project.modules
       .map((module: any) => ({
         name: module.id,
         dependencies: getDependencies(module),
@@ -78,23 +66,99 @@ export namespace layer {
         binaries: getBinaries(module)
       }))
       .sort((a: Module, b: Module) => a.name < b.name ? -1 : 1);
-    const getProjects = (layer: any) => layer.projects
-      .map((project: any) => ({
-        name: project.id,
-        modules: getModules(project)
+  }
+
+  function getBinaries(module: any) {
+    return module.binaries
+      .map((binary: any) => binary.id)
+      .sort((a: string, b: string) => a < b ? -1 : 1);
+  }
+
+  function getSources(module: any) {
+    return module.sources
+      .map((source: any) => ({
+        id: source.id,
+        path: source.path,
+        isLocal: source.editable
       }))
-      .sort((a: Project, b: Project) => a.name < b.name ? -1 : 1);
-    console.log(`Get layer from workspace: ${workspace}`);
-    const furyServerUrl = 'http://localhost:6325/layer?path=' + workspace;
+      .sort((a: Source, b: Source) => a.id < b.id ? -1 : 1);
+  }
+
+  function getDependencies(module: any) {
+    return module.dependencies
+      .sort((a: string, b: string) => a < b ? -1 : 1);
+  }
+
+  export function buildDependencyGraph(project: Project): string[][] {
+    const dependencies = project.modules.flatMap(module => module.dependencies.map(dependencyName => [dependencyName, project.name + '/' + module.name]));
+    return sortDependencies(dependencies);
+  }
+}
+
+export namespace hierarchy {
+  export interface Hierarchy {
+    name: string,
+    children: Hierarchy[]
+  }
+
+  export function get(workspace: string | undefined): Promise<Hierarchy> {
+    console.log(`Getting a hierarchy for workspace: ${workspace}.`);
+    if (!workspace) {
+      return Promise.reject('Unable to get a hierarchy. Workspace undefined.');
+    }
+
+    const hierarchyUrl = 'http://localhost:6325/hierarchy?path=' + workspace;
     return axios
-      .get(furyServerUrl)
-      .then(response => ({
-        name: '/',
-        projects: getProjects(response.data.result)
-      }))
+      .get(hierarchyUrl)
+      .then(response => getHierarchy(response.data.result))
       .catch(error => {
-        console.log(`Cannot get layer from workspace: ${error}.`);
+        console.log(`Unable to get a hierarchy: ${error}.`);
         return error;
       });
+  }
+
+  function getHierarchy(hierarchy: any) {
+    return {
+      name: hierarchy.id,
+      children: getChildren(hierarchy).map((child: any) => getHierarchy(child))
+    };
+  };
+
+  function getChildren(hierarchy: any) {
+    return hierarchy.children ? hierarchy.children : [];
+  }
+}
+
+export namespace universe {
+  export interface Universe {
+    projects: string[]
+  }
+
+  export function get(workspace: string | undefined): Promise<Universe> {
+    console.log(`Getting a universe for workspace: ${workspace}.`);
+    if (!workspace) {
+      return Promise.reject('Unable to get a universe. Workspace undefined.');
+    }
+
+    const universeUrl = 'http://localhost:6325/universe?path=' + workspace;
+    return axios
+      .get(universeUrl)
+      .then(response => getUniverse(response.data.result))
+      .catch(error => {
+        console.log(`Unable to get a universe: ${error}.`);
+        return error;
+      });
+  }
+
+  function getUniverse(universe: any) {
+    return {
+      projects: getProjects(universe)
+    };
+  }
+
+  function getProjects(universe: any) {
+    return universe.projects
+    .map((project: any) => project.id)
+    .sort((a: string, b: string) => a < b ? -1 : 1);
   }
 }

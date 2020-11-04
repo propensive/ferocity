@@ -23,38 +23,46 @@
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"id": "fury-explorer",
-					"title": "Fury",
+					"id": "ferocity-explorer",
+					"title": "Ferocity",
 					"icon": "media/logo.svg"
 				}
 			]
 		},
 		"viewsWelcome": [
 			{
-				"view": "furyLayerItems",
+				"view": "ferocity.layer",
 				"contents": "Cannot connect to the Fury server."
 			},
 			{
-				"view": "furyUniverseItems",
+				"view": "ferocity.hierarchy",
+				"contents": "Cannot connect to the Fury server."
+			},
+			{
+				"view": "ferocity.universe",
 				"contents": "Cannot connect to the Fury server."
 			}
 		],
 		"views": {
-			"fury-explorer": [
+			"ferocity-explorer": [
 				{
-					"id": "furyLayerItems",
+					"id": "ferocity.layer",
 					"name": "Layer"
 				},
 				{
-					"id": "furyUniverseItems",
+					"id": "ferocity.hierarchy",
+					"name": "Hierarchy"
+				},
+				{
+					"id": "ferocity.universe",
 					"name": "Universe"
 				}
 			]
 		},
 		"commands": [
 			{
-				"command": "fury.layer.refresh",
-				"category": "Fury",
+				"command": "ferocity.layer.refresh",
+				"category": "Ferocity",
 				"title": "Refresh Layer",
 				"icon": {
 					"dark": "media/icons/dark/refresh.svg",
@@ -62,23 +70,22 @@
 				}
 			},
 			{
-				"command": "fury.project.showDependencyGraph",
-				"category": "Fury",
+				"command": "ferocity.layer.showDependencyGraph",
+				"category": "Ferocity",
 				"title": "Show Dependency Graph"
 			},
 			{
-				"command": "fury.layer.addProject",
-				"category": "Fury",
-				"title": "Add Project"
+				"command": "ferocity.hierarchy.refresh",
+				"category": "Ferocity",
+				"title": "Refresh Hierarchy",
+				"icon": {
+					"dark": "media/icons/dark/refresh.svg",
+					"light": "media/icons/light/refresh.svg"
+				}
 			},
 			{
-				"command": "fury.module.addDependency",
-				"category": "Fury",
-				"title": "Add Dependency"
-			},
-			{
-				"command": "fury.universe.refresh",
-				"category": "Fury",
+				"command": "ferocity.universe.refresh",
+				"category": "Ferocity",
 				"title": "Refresh Universe",
 				"icon": {
 					"dark": "media/icons/dark/refresh.svg",
@@ -89,42 +96,31 @@
 		"menus": {
 			"commandPalette": [
 				{
-					"command": "fury.project.showDependencyGraph",
-					"when": "false"
-				},
-				{
-					"command": "fury.layer.addProject",
-					"when": "false"
-				},
-				{
-					"command": "fury.module.addDependency",
+					"command": "ferocity.layer.showDependencyGraph",
 					"when": "false"
 				}
 			],
 			"view/title": [
 				{
-					"command": "fury.layer.refresh",
-					"when": "view == furyLayerItems",
+					"command": "ferocity.layer.refresh",
+					"when": "view == ferocity.layer",
 					"group": "navigation"
 				},
 				{
-					"command": "fury.universe.refresh",
-					"when": "view == furyUniverseItems",
+					"command": "ferocity.hierarchy.refresh",
+					"when": "view == ferocity.hierarchy",
+					"group": "navigation"
+				},
+				{
+					"command": "ferocity.universe.refresh",
+					"when": "view == ferocity.universe",
 					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "fury.layer.addProject",
-					"when": "view == furyLayerItems && viewItem == furyLayer"
-				},
-				{
-					"command": "fury.project.showDependencyGraph",
-					"when": "view == furyLayerItems && viewItem == furyProject"
-				},
-				{
-					"command": "fury.module.addDependency",
-					"when": "view == furyLayerItems && viewItem == furyModule"
+					"command": "ferocity.layer.showDependencyGraph",
+					"when": "view == ferocity.layer && viewItem == furyProject"
 				}
 			]
 		},

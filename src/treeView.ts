@@ -115,7 +115,38 @@ export class LayerItemsProvider implements vscode.TreeDataProvider<LayerItem> {
 	}
 }
 
+export class HierarchyItemsProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+	private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined> = new vscode.EventEmitter<vscode.TreeItem | undefined>();
+	readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem | undefined> = this._onDidChangeTreeData.event;
 
+	constructor(private workspaceState: vscode.Memento) { }
+
+	refresh(): void {
+		this._onDidChangeTreeData.fire(undefined);
+	}
+
+	getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
+		return element;
+	}
+
+	getChildren(element: vscode.TreeItem): Thenable<vscode.TreeItem[]> {
+		const hierarchy: fury.hierarchy.Hierarchy | undefined = this.workspaceState.get('hierarchy');
+		if (!hierarchy) {
+			return Promise.resolve([]);
+		}
+
+		if (!element) {
+			return Promise.resolve(makeHierarchy(hierarchy));
+		} else {
+			return Promise.resolve([]);
+		}
+
+		function makeHierarchy(hierarchy: fury.hierarchy.Hierarchy): vscode.TreeItem[] {
+			const treeItem = new vscode.TreeItem(hierarchy.name);
+			return [treeItem];
+		}
+	}
+}
 
 export class UniverseItemsProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 	private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined> = new vscode.EventEmitter<vscode.TreeItem | undefined>();
