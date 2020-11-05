@@ -1,98 +1,63 @@
-import * as vscode from 'vscode';
-import * as os from 'os';
-import * as path from 'path';
 import * as pcp from 'promisify-child-process';
-import * as fury from './fury';
-import { LayerItemsProvider, UniverseItemsProvider, LayerItem } from './treeView';
-import { extendMarkdownItWithMermaid } from './markdown';
+import * as vscode from 'vscode';
+import * as commands from './commands';
 import { DependencyGraphContentProvider, dependencyGraphScheme } from './dependencyGraph';
-import installJavaIfNeeded from './installJava';
-import installFuryIfNeeded from './installFury';
-
-const furyBin = path.join(os.homedir(), '.ferocity', 'fury', 'bin', 'fury'); 
-
-function handleConnectionError(error: any) {
-	vscode.window.showErrorMessage('Cannot connect to the Fury server.');
-}
-
-function setUpFerocity(): Promise<void> {
-	return new Promise<void>((resolve, reject) => {
-		vscode.window.withProgress({
-			location: vscode.ProgressLocation.Notification,
-			title: `Setting up Ferocity`,
-			cancellable: true,
-		}, () => Promise.all([installJavaIfNeeded(), installFuryIfNeeded()])
-			.then(result => {
-				const [javaPath, furyPath] = result;
-				console.log('Java installation succeeded: ' + javaPath);
-				console.log('Fury installation succeeded: ' + furyPath);
-				resolve();
-			})
-			.catch(error => {
-				console.log('Setting up failed: ' + error);
-				reject();
-			}));
-	});
-}
-
-function runFerocity(context: vscode.ExtensionContext) {
-
-	const layerItemsProvider = new LayerItemsProvider(context.workspaceState);
-	vscode.window.registerTreeDataProvider('furyLayerItems', layerItemsProvider);
-
-	const universeItemsProvider = new UniverseItemsProvider(context.workspaceState);
-	vscode.window.registerTreeDataProvider('furyUniverseItems', universeItemsProvider);
-
-	vscode.commands.registerCommand('fury.layer.refresh', () => {
-		fury.layer.get(vscode.workspace.rootPath)
-			.then(layer => context.workspaceState.update('layer', layer))
-			.catch(handleConnectionError);
-		layerItemsProvider.refresh();
-	});
-	vscode.commands.registerCommand('fury.layer.addProject', () => {
-		vscode.window.showInputBox();
-		vscode.window.showInformationMessage('Layer / Add Project');
-	});
-	vscode.commands.registerCommand('fury.module.addDependency', () => {
-		vscode.window.showQuickPick(['dependency1', 'dependency2', 'dependency3']);
-		vscode.window.showInformationMessage('Module / Add Dependency');
-	});
-	vscode.commands.registerCommand('fury.project.showDependencyGraph', async (projectItem: LayerItem) => {
-		const layer: fury.Layer | undefined = context.workspaceState.get('layer');
-		const project: fury.Project | undefined = layer ? layer.projects.find(project => project.name === projectItem.label) : undefined;
-		const dependencies = project ? fury.buildDependencyGraph(project) : [];
-		context.workspaceState.update('dependencies', dependencies);
-
-		const uri = vscode.Uri.parse('fury:' + 'Dependency Graph');
-		await vscode.workspace.openTextDocument(uri);
-		vscode.commands.executeCommand('markdown.showPreview', uri);
-	});
-	vscode.commands.registerCommand('fury.universe.refresh', () => {
-		fury.universe.get(vscode.workspace.rootPath)
-			.then(universe => context.workspaceState.update('universe', universe))
-			.catch(handleConnectionError);
-		universeItemsProvider.refresh();
-	});
-
-	vscode.workspace.registerTextDocumentContentProvider(dependencyGraphScheme, new DependencyGraphContentProvider(context.workspaceState));
-
-	vscode.commands.executeCommand('fury.layer.refresh');
-	vscode.commands.executeCommand('fury.universe.refresh');
-}
+import { extendMarkdownItWithMermaid } from './markdown';
+import { setUpFerocity } from './setUp';
+import { getHierarchyTree } from './tree/hierarchyTree';
+import { getLayerTree } from './tree/layerTree';
+import { FerocityTreeDataProvider } from './tree/tree';
+import { getUniverseTree } from './tree/universeTree';
 
 export function activate(context: vscode.ExtensionContext) {
-	console.log('Fury extension is active.');
-	console.log('Workspace root path: ' + vscode.workspace.rootPath);
+	console.log('Ferociy extension has been activated.');
+	console.log('Workspace root path: ' + vscode.workspace.rootPath + '.');
 
 	setUpFerocity()
 		.then(() => {
-			vscode.window.showInformationMessage('Ferocity set up succeeded');
+			vscode.window.showInformationMessage('Ferocity set up succeeded.');
 		})
-		.then(() => pcp.exec(`${furyBin} about`))
+		// .then(() => pcp.exec(`${fury.furyBin} about`))
+		.then(() => pcp.exec('fury about'))
 		.then(() => runFerocity(context))
-		.catch(() => {
-			vscode.window.showErrorMessage('Ferocity set up failed');
-		});
+		.catch(() => vscode.window.showErrorMessage('Ferocity set up failed.'));
 
 	return extendMarkdownItWithMermaid();
+}
+
+function runFerocity(context: vscode.ExtensionContext) {
+	context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(
+		dependencyGraphScheme,
+		new DependencyGraphContentProvider(context.workspaceState)
+	));
+
+	const layerTreeDataProvider = new FerocityTreeDataProvider(() => getLayerTree(context.workspaceState.get('layer')));
+	context.subscriptions.push(vscode.window.registerTreeDataProvider('ferocity.layer', layerTreeDataProvider));
+
+	const hierarchyTreeDataProvider = new FerocityTreeDataProvider(() => getHierarchyTree(context.workspaceState.get('hierarchy')));
+	context.subscriptions.push(vscode.window.registerTreeDataProvider('ferocity.hierarchy', hierarchyTreeDataProvider));
+
+	const universeTreeDataProvider = new FerocityTreeDataProvider(() => getUniverseTree(context.workspaceState.get('universe')));
+	vscode.window.registerTreeDataProvider('ferocity.universe', universeTreeDataProvider);
+
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.layer.refresh',
+		commands.layer.refresh(context, layerTreeDataProvider)
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.layer.showDependencyGraph',
+		commands.layer.showDependencyGraph(context)
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.hierarchy.refresh',
+		commands.hierarchy.refresh(context, hierarchyTreeDataProvider)
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.universe.refresh',
+		commands.universe.refresh(context, universeTreeDataProvider)
+	));
+
+	vscode.commands.executeCommand('ferocity.layer.refresh');
+	vscode.commands.executeCommand('ferocity.hierarchy.refresh');
+	vscode.commands.executeCommand('ferocity.universe.refresh');
 }

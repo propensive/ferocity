@@ -2,6 +2,30 @@ import * as vscode from 'vscode';
 
 type Graph = { [index: string]: string[] };
 
+export const dependencyGraphScheme = 'fury';
+
+export class DependencyGraphContentProvider implements vscode.TextDocumentContentProvider {
+  constructor(private workspaceState: vscode.Memento) { }
+
+  provideTextDocumentContent(uri: vscode.Uri): string {
+    const dependencies = this.workspaceState
+      .get('dependencies', [])
+      .map(dependency => {
+        return '\t' + dependency[0] + '-->' + dependency[1] + ';';
+      });
+
+    return '::: mermaid\n'
+      + 'graph TD;\n'
+      + dependencies.join('\n')
+      + '\n:::\n';
+  }
+}
+
+export function sortDependencies(dependencies: string[][]): string[][] {
+  const order = topologicalOrder(dependencies);
+  return order ? dependencies.sort((a, b) => order[a[0]] < order[b[0]] ? 1 : -1) : dependencies;
+}
+
 function buildGraph(dependencies: string[][]): Graph {
   const graph: Graph = {};
   dependencies.forEach((dependency: string[]) => {
@@ -77,28 +101,4 @@ function topologicalOrder(dependencies: string[][]): { [index: string]: number }
   const graph = buildGraph(dependencies);
   const topologicallySorted = topologicalSort(graph);
   return topologicallySorted ? arrayToMap(topologicallySorted) : undefined;
-}
-
-export const dependencyGraphScheme = 'fury';
-
-export class DependencyGraphContentProvider implements vscode.TextDocumentContentProvider {
-  constructor(private workspaceState: vscode.Memento) { }
-
-  provideTextDocumentContent(uri: vscode.Uri): string {
-    const dependencies = this.workspaceState
-      .get('dependencies', [])
-      .map(dependency => {
-        return '\t' + dependency[0] + '-->' + dependency[1] + ';';
-      });
-
-    return '::: mermaid\n'
-      + 'graph TD;\n'
-      + dependencies.join('\n')
-      + '\n:::\n';
-  }
-}
-
-export function sortDependencies(dependencies: string[][]): string[][] {
-  const order = topologicalOrder(dependencies);
-  return order ? dependencies.sort((a, b) => order[a[0]] < order[b[0]] ? 1 : -1) : dependencies;
 }
