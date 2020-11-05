@@ -120,7 +120,7 @@
 			"view/item/context": [
 				{
 					"command": "ferocity.layer.showDependencyGraph",
-					"when": "view == ferocity.layer && viewItem == furyProject"
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.project-item"
 				}
 			]
 		},

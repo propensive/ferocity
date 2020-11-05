@@ -20,7 +20,7 @@ export namespace layer {
   }
 
   export interface Source {
-    id: string;
+    name: string;
     path: string;
     isLocal: boolean;
   }
@@ -77,16 +77,15 @@ export namespace layer {
   function getSources(module: any) {
     return module.sources
       .map((source: any) => ({
-        id: source.id,
+        name: source.id,
         path: source.path,
         isLocal: source.editable
       }))
-      .sort((a: Source, b: Source) => a.id < b.id ? -1 : 1);
+      .sort((a: Source, b: Source) => a.name < b.name ? -1 : 1);
   }
 
   function getDependencies(module: any) {
-    return module.dependencies
-      .sort((a: string, b: string) => a < b ? -1 : 1);
+    return module.dependencies.sort((a: string, b: string) => a < b ? -1 : 1);
   }
 
   export function buildDependencyGraph(project: Project): string[][] {
@@ -158,7 +157,7 @@ export namespace universe {
 
   function getProjects(universe: any) {
     return universe.projects
-    .map((project: any) => project.id)
-    .sort((a: string, b: string) => a < b ? -1 : 1);
+      .map((project: any) => project.id)
+      .sort((a: string, b: string) => a < b ? -1 : 1);
   }
 }

@@ -1,19 +1,19 @@
 import * as vscode from 'vscode';
 import * as fury from './fury';
-import { LayerItemsProvider, UniverseItemsProvider, LayerItem, HierarchyItemsProvider } from './treeView';
+import { FerocityTreeDataProvider, FerocityTreeItem } from './tree/tree';
 
 export namespace layer {
-  export function refresh(context: vscode.ExtensionContext, layerItemsProvider: LayerItemsProvider) {
+  export function refresh(context: vscode.ExtensionContext, layerTreeDataProvider: FerocityTreeDataProvider) {
     return () => {
       fury.layer.get(vscode.workspace.rootPath)
         .then(layer => context.workspaceState.update('layer', layer))
         .catch(handleConnectionError);
-      layerItemsProvider.refresh();
+      layerTreeDataProvider.refresh();
     };
   }
 
   export function showDependencyGraph(context: vscode.ExtensionContext) {
-    return async (projectItem: LayerItem) => {
+    return async (projectItem: FerocityTreeItem) => {
       const layer: fury.layer.Layer | undefined = context.workspaceState.get('layer');
       const project: fury.layer.Project | undefined = layer ? layer.projects.find(project => project.name === projectItem.label) : undefined;
       const dependencies = project ? fury.layer.buildDependencyGraph(project) : [];
@@ -27,23 +27,23 @@ export namespace layer {
 }
 
 export namespace hierarchy {
-  export function refresh(context: vscode.ExtensionContext, hierarchyItemsProvider: HierarchyItemsProvider) {
+  export function refresh(context: vscode.ExtensionContext, hierarchyTreeDataProvider: FerocityTreeDataProvider) {
     return () => {
       fury.hierarchy.get(vscode.workspace.rootPath)
         .then(hierarchy => context.workspaceState.update('hierarchy', hierarchy))
         .catch(handleConnectionError);
-      hierarchyItemsProvider.refresh();
+      hierarchyTreeDataProvider.refresh();
     };
   }
 }
 
 export namespace universe {
-  export function refresh(context: vscode.ExtensionContext, universeItemsProvider: UniverseItemsProvider) {
+  export function refresh(context: vscode.ExtensionContext, universeTreeDataProvider: FerocityTreeDataProvider) {
     return () => {
       fury.universe.get(vscode.workspace.rootPath)
         .then(universe => context.workspaceState.update('universe', universe))
         .catch(handleConnectionError);
-      universeItemsProvider.refresh();
+      universeTreeDataProvider.refresh();
     };
   }
 }
