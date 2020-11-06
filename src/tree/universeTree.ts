@@ -7,7 +7,12 @@ export function getUniverseTree(universe: fury.universe.Universe | undefined): F
 
 class ProjectItem extends FerocityTreeItem {
   constructor(projectName: string) {
-    super(projectName, false, [], 'ferocity.universe.project-item');
+    super(projectName, false, 'ferocity.universe.project-item');
+    this.command = {
+      title: 'Reveal Project',
+      command: 'ferocity.revealProject',
+      arguments: [projectName]
+    };
   }
 }
 

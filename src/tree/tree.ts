@@ -2,7 +2,10 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 export class FerocityTreeItem extends vscode.TreeItem {
-	constructor(public readonly label: string, collapsible: boolean, public readonly children: FerocityTreeItem[], public readonly contextValue: string | undefined) {
+	parent: FerocityTreeItem | undefined;
+	children: FerocityTreeItem[] = [];
+
+	constructor(public readonly label: string, collapsible: boolean, public readonly contextValue: string | undefined) {
 		super(label);
 		this.collapsibleState = collapsible ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
 		this.contextValue = contextValue;
@@ -15,12 +18,12 @@ export class FerocityTreeDataProvider implements vscode.TreeDataProvider<Ferocit
 
 	private treeItems: FerocityTreeItem[];
 
-	constructor(private readonly getTreeItems: () => FerocityTreeItem[]) {
-		this.treeItems = this.getTreeItems();
+	constructor(private readonly createTreeItems: () => FerocityTreeItem[]) {
+		this.treeItems = this.createTreeItems();
 	}
 
 	refresh(): void {
-		this.treeItems = this.getTreeItems();
+		this.treeItems = this.createTreeItems();
 		this._onDidChangeTreeData.fire(undefined);
 	}
 
@@ -33,6 +36,14 @@ export class FerocityTreeDataProvider implements vscode.TreeDataProvider<Ferocit
 			return Promise.resolve(this.treeItems);
 		}
 		return Promise.resolve(element.children);
+	}
+
+	getParent?(element: FerocityTreeItem): vscode.ProviderResult<FerocityTreeItem> {
+		return element.parent ? Promise.resolve(element.parent) : undefined;
+	}
+
+	getTreeItems(): FerocityTreeItem[] {
+		return this.treeItems;
 	}
 }
 

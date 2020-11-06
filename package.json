@@ -61,7 +61,7 @@
 		},
 		"commands": [
 			{
-				"command": "ferocity.layer.refresh",
+				"command": "ferocity.refreshLayer",
 				"category": "Ferocity",
 				"title": "Refresh Layer",
 				"icon": {
@@ -70,12 +70,17 @@
 				}
 			},
 			{
-				"command": "ferocity.layer.showDependencyGraph",
+				"command": "ferocity.showDependencyGraph",
 				"category": "Ferocity",
 				"title": "Show Dependency Graph"
 			},
 			{
-				"command": "ferocity.hierarchy.refresh",
+				"command": "ferocity.revealProject",
+				"category": "Ferocity",
+				"title": "Reveal Project"
+			},
+			{
+				"command": "ferocity.refreshHierarchy",
 				"category": "Ferocity",
 				"title": "Refresh Hierarchy",
 				"icon": {
@@ -84,7 +89,7 @@
 				}
 			},
 			{
-				"command": "ferocity.universe.refresh",
+				"command": "ferocity.refreshUniverse",
 				"category": "Ferocity",
 				"title": "Refresh Universe",
 				"icon": {
@@ -96,30 +101,34 @@
 		"menus": {
 			"commandPalette": [
 				{
-					"command": "ferocity.layer.showDependencyGraph",
+					"command": "ferocity.showDependencyGraph",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.revealProject",
 					"when": "false"
 				}
 			],
 			"view/title": [
 				{
-					"command": "ferocity.layer.refresh",
+					"command": "ferocity.refreshLayer",
 					"when": "view == ferocity.layer",
 					"group": "navigation"
 				},
 				{
-					"command": "ferocity.hierarchy.refresh",
+					"command": "ferocity.refreshHierarchy",
 					"when": "view == ferocity.hierarchy",
 					"group": "navigation"
 				},
 				{
-					"command": "ferocity.universe.refresh",
+					"command": "ferocity.refreshUniverse",
 					"when": "view == ferocity.universe",
 					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "ferocity.layer.showDependencyGraph",
+					"command": "ferocity.showDependencyGraph",
 					"when": "view == ferocity.layer && viewItem == ferocity.layer.project-item"
 				}
 			]

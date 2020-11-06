@@ -1,13 +1,14 @@
 import * as pcp from 'promisify-child-process';
 import * as vscode from 'vscode';
 import * as commands from './commands';
+import * as state from './state';
 import { DependencyGraphContentProvider, dependencyGraphScheme } from './dependencyGraph';
 import { extendMarkdownItWithMermaid } from './markdown';
 import { setUpFerocity } from './setUp';
-import { getHierarchyTree } from './tree/hierarchyTree';
-import { getLayerTree } from './tree/layerTree';
+import { getHierarchyTree as createHierarchyTree } from './tree/hierarchyTree';
+import { getLayerTree as createLayerTree } from './tree/layerTree';
 import { FerocityTreeDataProvider } from './tree/tree';
-import { getUniverseTree } from './tree/universeTree';
+import { getUniverseTree as createUniverseTree } from './tree/universeTree';
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Ferociy extension has been activated.');
@@ -31,33 +32,37 @@ function runFerocity(context: vscode.ExtensionContext) {
 		new DependencyGraphContentProvider(context.workspaceState)
 	));
 
-	const layerTreeDataProvider = new FerocityTreeDataProvider(() => getLayerTree(context.workspaceState.get('layer')));
-	context.subscriptions.push(vscode.window.registerTreeDataProvider('ferocity.layer', layerTreeDataProvider));
+	const layerTreeDataProvider = new FerocityTreeDataProvider(() => createLayerTree(context.workspaceState.get(state.layerKey)));
+	const layerTreeView = vscode.window.createTreeView('ferocity.layer', { treeDataProvider: layerTreeDataProvider });
 
-	const hierarchyTreeDataProvider = new FerocityTreeDataProvider(() => getHierarchyTree(context.workspaceState.get('hierarchy')));
+	const hierarchyTreeDataProvider = new FerocityTreeDataProvider(() => createHierarchyTree(context.workspaceState.get(state.hierarchyKey)));
 	context.subscriptions.push(vscode.window.registerTreeDataProvider('ferocity.hierarchy', hierarchyTreeDataProvider));
 
-	const universeTreeDataProvider = new FerocityTreeDataProvider(() => getUniverseTree(context.workspaceState.get('universe')));
-	vscode.window.registerTreeDataProvider('ferocity.universe', universeTreeDataProvider);
+	const universeTreeDataProvider = new FerocityTreeDataProvider(() => createUniverseTree(context.workspaceState.get(state.universeKey)));
+	context.subscriptions.push(vscode.window.registerTreeDataProvider('ferocity.universe', universeTreeDataProvider));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'ferocity.layer.refresh',
-		commands.layer.refresh(context, layerTreeDataProvider)
+		'ferocity.refreshLayer',
+		commands.refreshLayer(context, layerTreeDataProvider)
 	));
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'ferocity.layer.showDependencyGraph',
-		commands.layer.showDependencyGraph(context)
+		'ferocity.showDependencyGraph',
+		commands.showDependencyGraph(context)
 	));
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'ferocity.hierarchy.refresh',
-		commands.hierarchy.refresh(context, hierarchyTreeDataProvider)
+		'ferocity.revealProject',
+		commands.revealProject(context, layerTreeDataProvider, layerTreeView)
 	));
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'ferocity.universe.refresh',
-		commands.universe.refresh(context, universeTreeDataProvider)
+		'ferocity.refreshHierarchy',
+		commands.refreshHierarchy(context, hierarchyTreeDataProvider)
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.refreshUniverse',
+		commands.refreshUniverse(context, universeTreeDataProvider)
 	));
 
-	vscode.commands.executeCommand('ferocity.layer.refresh');
-	vscode.commands.executeCommand('ferocity.hierarchy.refresh');
-	vscode.commands.executeCommand('ferocity.universe.refresh');
+	vscode.commands.executeCommand('ferocity.refreshLayer');
+	vscode.commands.executeCommand('ferocity.refreshHierarchy');
+	vscode.commands.executeCommand('ferocity.refreshUniverse');
 }
