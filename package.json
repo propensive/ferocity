@@ -70,16 +70,6 @@
 				}
 			},
 			{
-				"command": "ferocity.showDependencyGraph",
-				"category": "Ferocity",
-				"title": "Show Dependency Graph"
-			},
-			{
-				"command": "ferocity.revealProject",
-				"category": "Ferocity",
-				"title": "Reveal Project"
-			},
-			{
 				"command": "ferocity.refreshHierarchy",
 				"category": "Ferocity",
 				"title": "Refresh Hierarchy",
@@ -96,6 +86,21 @@
 					"dark": "media/icons/dark/refresh.svg",
 					"light": "media/icons/light/refresh.svg"
 				}
+			},
+			{
+				"command": "ferocity.showDependencyGraph",
+				"category": "Ferocity",
+				"title": "Show Dependency Graph"
+			},
+			{
+				"command": "ferocity.revealProject",
+				"category": "Ferocity",
+				"title": "Reveal Project"
+			},
+			{
+				"command": "ferocity.openFile",
+				"category": "Ferocity",
+				"title": "Open File"
 			}
 		],
 		"menus": {
@@ -106,6 +111,10 @@
 				},
 				{
 					"command": "ferocity.revealProject",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.openFile",
 					"when": "false"
 				}
 			],
@@ -169,6 +178,5 @@
 		"vscode-test": "^1.4.0"
 	},
 	"extensionDependencies": [
-		"scalameta.metals"
 	]
 }
