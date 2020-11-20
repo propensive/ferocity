@@ -1,7 +1,7 @@
 import * as fury from '../fury';
 import { FerocityTreeItem } from './tree';
 
-export function getHierarchyTree(hierarchy: fury.hierarchy.Hierarchy | undefined): FerocityTreeItem[] {
+export function createHierarchyTree(hierarchy: fury.hierarchy.Hierarchy | undefined): FerocityTreeItem[] {
   return hierarchy ? getHierarchyItems(hierarchy) : [];
 }
 

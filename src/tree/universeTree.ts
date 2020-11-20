@@ -1,7 +1,7 @@
 import * as fury from '../fury';
 import { FerocityTreeItem } from './tree';
 
-export function getUniverseTree(universe: fury.universe.Universe | undefined): FerocityTreeItem[] {
+export function createUniverseTree(universe: fury.universe.Universe | undefined): FerocityTreeItem[] {
   return universe ? getProjectItems(universe) : [];
 }
 

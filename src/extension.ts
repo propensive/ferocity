@@ -1,28 +1,42 @@
 import * as pcp from 'promisify-child-process';
 import * as vscode from 'vscode';
 import * as commands from './commands';
-import * as state from './state';
-import { FerocityTextDocumentContentProvider, ferocityScheme } from './textDocumentContentProvider';
 import { DependencyGraphContentProvider, dependencyGraphScheme } from './dependencyGraph';
 import { extendMarkdownItWithMermaid } from './markdown';
+import { furyBin } from './settings';
 import { setUpFerocity } from './setUp';
-import { getHierarchyTree as createHierarchyTree } from './tree/hierarchyTree';
-import { LayerTreeDataProvider, getLayerTree as createLayerTree } from './tree/layerTree';
+import * as state from './state';
+import { ferocityScheme, FerocityTextDocumentContentProvider } from './textDocumentContentProvider';
+import { createHierarchyTree } from './tree/hierarchyTree';
+import { createLayerTree, LayerTreeDataProvider } from './tree/layerTree';
 import { FerocityTreeDataProvider } from './tree/tree';
-import { getUniverseTree as createUniverseTree } from './tree/universeTree';
+import { createUniverseTree } from './tree/universeTree';
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Ferociy extension has been activated.');
 	console.log('Workspace root path: ' + vscode.workspace.rootPath + '.');
 
-	setUpFerocity()
-		.then(() => {
-			vscode.window.showInformationMessage('Ferocity set up succeeded.');
-		})
-		// .then(() => pcp.exec(`${fury.furyBin} about`))
-		.then(() => pcp.exec('fury about'))
-		.then(() => runFerocity(context))
-		.catch(() => vscode.window.showErrorMessage('Ferocity set up failed.'));
+	vscode.commands.executeCommand('setContext', 'ferocity.initialized', false)
+		.then(() => context.workspaceState.update(state.layerKey, undefined))
+		.then(() => context.workspaceState.update(state.hierarchyKey, undefined))
+		.then(() => context.workspaceState.update(state.universeKey, undefined))
+		.then(() => setUpFerocity()
+			.then(() => {
+				vscode.window.showInformationMessage('Ferocity set up successfully.');
+			})
+			.catch((error: string) => {
+				console.log('Ferocity set up failed. Error: ' + error);
+				vscode.window.showErrorMessage('Ferocity set up failed.');
+			})
+			.then(() => pcp.exec(`${furyBin} about`))
+			.then(() => runFerocity(context))
+			.then(() => {
+				vscode.window.showInformationMessage('Ferocity run successfully.');
+			})
+			.catch((error: string) => {
+				console.log('Ferocity unable to run Ferocity. Error: ' + error);
+				vscode.window.showErrorMessage('Unable to run Ferocity.');
+			}));
 
 	return extendMarkdownItWithMermaid();
 }
@@ -69,6 +83,10 @@ function runFerocity(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand(
 		'ferocity.openFile',
 		commands.openFile()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.initializeLayer',
+		commands.initializeLayer()
 	));
 
 	vscode.commands.executeCommand('ferocity.refreshLayer');

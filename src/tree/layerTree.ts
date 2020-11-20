@@ -1,7 +1,6 @@
-import * as vscode from 'vscode';
-import * as fury from '../fury';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as fury from '../fury';
 import { createIconPath, FerocityTreeDataProvider, FerocityTreeItem } from './tree';
 
 export class LayerTreeDataProvider extends FerocityTreeDataProvider {
@@ -53,7 +52,7 @@ export class LayerTreeDataProvider extends FerocityTreeDataProvider {
 	}
 }
 
-export function getLayerTree(layer: fury.layer.Layer | undefined): FerocityTreeItem[] {
+export function createLayerTree(layer: fury.layer.Layer | undefined): FerocityTreeItem[] {
 	return layer ? getLayerItems(layer) : [];
 }
 

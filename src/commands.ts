@@ -3,31 +3,61 @@ import * as fury from './fury';
 import * as state from './state';
 import { ferocityScheme } from './textDocumentContentProvider';
 import { FerocityTreeDataProvider, FerocityTreeItem } from './tree/tree';
+import { furyBin } from './settings';
+import * as pcp from 'promisify-child-process';
 
 export function refreshLayer(context: vscode.ExtensionContext, layerTreeDataProvider: FerocityTreeDataProvider) {
   return () => {
     fury.layer.get(vscode.workspace.rootPath)
-      .then(layer => context.workspaceState.update(state.layerKey, layer))
+      .then((layer: fury.layer.Layer | fury.Error) => {
+        if (fury.isError(layer)) {
+          console.log('Error: ' + layer.message);
+          vscode.window.showErrorMessage('Layer failed to refresh.');
+        } else {
+          console.log('Layer: ' + layer);
+          context.workspaceState.update(state.layerKey, layer);
+          layerTreeDataProvider.refresh();
+          vscode.window.showInformationMessage('Layer refreshed.');
+          vscode.commands.executeCommand('setContext', 'ferocity.initialized', true);
+        }
+      })
       .catch(handleConnectionError);
-    layerTreeDataProvider.refresh();
   };
 }
 
 export function refreshHierarchy(context: vscode.ExtensionContext, hierarchyTreeDataProvider: FerocityTreeDataProvider) {
   return () => {
     fury.hierarchy.get(vscode.workspace.rootPath)
-      .then(hierarchy => context.workspaceState.update(state.hierarchyKey, hierarchy))
+      .then((hierarchy: fury.hierarchy.Hierarchy | fury.Error) => {
+        if (fury.isError(hierarchy)) {
+          console.log('Error: ' + hierarchy.message);
+          vscode.window.showErrorMessage('Hierarchy failed to refresh.');
+        } else {
+          console.log('Hierarchy: ' + hierarchy);
+          context.workspaceState.update(state.hierarchyKey, hierarchy);
+          hierarchyTreeDataProvider.refresh();
+          vscode.window.showInformationMessage('Hierarchy refreshed.');
+        }
+      })
       .catch(handleConnectionError);
-    hierarchyTreeDataProvider.refresh();
   };
 }
 
 export function refreshUniverse(context: vscode.ExtensionContext, universeTreeDataProvider: FerocityTreeDataProvider) {
   return () => {
     fury.universe.get(vscode.workspace.rootPath)
-      .then(universe => context.workspaceState.update(state.universeKey, universe))
+      .then((universe: fury.universe.Universe | fury.Error) => {
+        if (fury.isError(universe)) {
+          console.log('Error: ' + universe.message);
+          vscode.window.showErrorMessage('Universe failed to refresh.');
+        } else {
+          console.log('Universe: ' + universe);
+          context.workspaceState.update(state.universeKey, universe);
+          universeTreeDataProvider.refresh();
+          vscode.window.showInformationMessage('Universe refreshed.');
+        }
+      })
       .catch(handleConnectionError);
-    universeTreeDataProvider.refresh();
   };
 }
 
@@ -74,5 +104,30 @@ export function openFile() {
         vscode.window.showTextDocument(doc, { preview: false });
       });
     }
+  };
+}
+
+export function initializeLayer() {
+  return () => {
+    console.log('Initialize layer.');
+    const workspace = vscode.workspace.rootPath;
+    if (!workspace) {
+      return;
+    }
+
+    pcp.exec(`${furyBin} layer init`, { cwd: workspace })
+      .then(() => {
+        console.log('Fury layer initialized.');
+        vscode.commands.executeCommand('setContext', 'ferocity.initialized', true);
+        vscode.window.showInformationMessage('Fury layer initialized.');
+
+        vscode.commands.executeCommand('ferocity.refreshLayer');
+        vscode.commands.executeCommand('ferocity.refreshHierarchy');
+        vscode.commands.executeCommand('ferocity.refreshUniverse');
+      })
+      .catch(error => {
+        console.log('Fury layer initialization error. Error: ' + error);
+        vscode.window.showInformationMessage('Fury layer failed to initialize.');
+      });
   };
 }
