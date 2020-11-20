@@ -106,6 +106,7 @@ class SourceFileItem extends FerocityTreeItem {
 			command: 'ferocity.openFile',
 			arguments: [path, isLocal]
 		};
+		this.iconPath = path.endsWith('.scala') ? createIconPath('scala') : undefined;
 	}
 }
 
