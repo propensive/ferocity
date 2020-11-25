@@ -1,12 +1,12 @@
-import * as vscode from 'vscode';
-import * as os from 'os';
-import * as path from 'path';
-import * as pcp from 'promisify-child-process';
 import * as decompress from 'decompress';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
-import * as settings from './settings';
+import * as path from 'path';
+import * as pcp from 'promisify-child-process';
+import * as vscode from 'vscode';
 import download from './download';
+import * as settings from './settings';
+import * as utils from './utils';
 
 export function setUpFerocity(): Promise<void> {
   console.log('Setting up Ferocity...');
@@ -43,9 +43,10 @@ function installJava(): Promise<string> {
   const javaVersion = 'adopt@1.8';
   const jabbaVersion = '0.11.2';
   const jabbaUrl = `https://github.com/shyiko/jabba/releases/download/${jabbaVersion}/jabba-${jabbaVersion}-${jabbaUrlSuffix()}`;
-  const jabbaBin = path.join(settings.jabbaDirectory, 'bin', jabbaBinaryName());
+  const jabbaBinDirectory = path.join(settings.jabbaDirectory, 'bin');
+  const jabbaBin = path.join(jabbaBinDirectory, jabbaBinaryName());
 
-  return mkdirp(settings.jabbaDirectory)
+  return mkdirp(jabbaBinDirectory)
     .then(() => {
       if (fs.existsSync(jabbaBin)) {
         console.log('Jabba is already installed.');
@@ -56,7 +57,7 @@ function installJava(): Promise<string> {
     })
     .then(() => fs.chmodSync(jabbaBin, 755))
     .then(() => pcp.exec(`${jabbaBin} ls-remote`))
-    .then(output => outputToString(output.stdout)
+    .then(output => utils.outputToString(output.stdout)
       .split("\n")
       .filter((str) => str.includes(javaVersion))[0]
       .trim())
@@ -100,10 +101,6 @@ function installFuryIfNeeded(): Promise<string> {
     }
   });
 }
-
-function outputToString(out: Buffer | string | null | undefined): string {
-  return out instanceof Buffer ? out.toString('utf8') : out ? <string>out : '';
-};
 
 function setUpSucceeded(result: any) {
   const [javaPath, furyPath] = result;

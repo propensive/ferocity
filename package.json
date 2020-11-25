@@ -6,7 +6,7 @@
 	"publisher": "Propensive",
 	"icon": "media/logo.png",
 	"engines": {
-		"vscode": "^1.43.0"
+		"vscode": "^1.51.0"
 	},
 	"repository": {
 		"type": "git",
@@ -16,7 +16,7 @@
 		"Programming Languages"
 	],
 	"activationEvents": [
-		"*"
+		"workspaceContains:**/.fury"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -54,6 +54,11 @@
 		],
 		"commands": [
 			{
+				"command": "ferocity.initializeLayer",
+				"category": "Ferocity",
+				"title": "Initialize Layer"
+			},
+			{
 				"command": "ferocity.refreshLayer",
 				"category": "Ferocity",
 				"title": "Refresh Layer",
@@ -61,6 +66,64 @@
 					"dark": "media/icons/dark/refresh.svg",
 					"light": "media/icons/light/refresh.svg"
 				}
+			},
+			{
+				"command": "ferocity.addProject",
+				"title": "Add Project"
+			},
+			{
+				"command": "ferocity.removeProject",
+				"title": "Remove"
+			},
+			{
+				"command": "ferocity.showDependencyGraph",
+				"category": "Ferocity",
+				"title": "Show Dependency Graph"
+			},
+			{
+				"command": "ferocity.addModule",
+				"title": "Add Module"
+			},
+			{
+				"command": "ferocity.buildModule",
+				"category": "Ferocity",
+				"title": "Build"
+			},
+			{
+				"command": "ferocity.removeModule",
+				"title": "Remove"
+			},
+			{
+				"command": "ferocity.addBinary",
+				"title": "Binary"
+			},
+			{
+				"command": "ferocity.addSource",
+				"title": "Source"
+			},
+			{
+				"command": "ferocity.updateModuleCompiler",
+				"title": "Compiler"
+			},
+			{
+				"command": "ferocity.updateModuleName",
+				"title": "Name"
+			},
+			{
+				"command": "ferocity.updateModuleType",
+				"title": "Type"
+			},
+			{
+				"command": "ferocity.removeSource",
+				"title": "Remove"
+			},
+			{
+				"command": "ferocity.removeBinary",
+				"title": "Remove"
+			},
+			{
+				"command": "ferocity.revealSource",
+				"title": "Reveal in Explorer"
 			},
 			{
 				"command": "ferocity.refreshHierarchy",
@@ -81,34 +144,76 @@
 				}
 			},
 			{
-				"command": "ferocity.showDependencyGraph",
-				"category": "Ferocity",
-				"title": "Show Dependency Graph"
-			},
-			{
-				"command": "ferocity.revealProject",
-				"category": "Ferocity",
-				"title": "Reveal Project"
-			},
-			{
 				"command": "ferocity.openFile",
 				"category": "Ferocity",
 				"title": "Open File"
 			},
 			{
-				"command": "ferocity.initializeLayer",
+				"command": "ferocity.revealProject",
 				"category": "Ferocity",
-				"title": "Initialize Layer"
+				"title": "Reveal"
 			}
 		],
 		"menus": {
 			"commandPalette": [
 				{
+					"command": "ferocity.initializeLayer",
+					"when": "!ferociy.initialized"
+				},
+				{
+					"command": "ferocity.addProject",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.removeProject",
+					"when": "false"
+				},
+				{
 					"command": "ferocity.showDependencyGraph",
 					"when": "false"
 				},
 				{
-					"command": "ferocity.revealProject",
+					"command": "ferocity.addModule",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.buildModule",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.removeModule",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.addSource",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.addBinary",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.updateModuleCompiler",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.updateModuleName",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.updateModuleType",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.removeSource",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.removeBinary",
+					"when": "false"
+				},
+				{
+					"command": "ferocity.revealSource",
 					"when": "false"
 				},
 				{
@@ -116,15 +221,15 @@
 					"when": "false"
 				},
 				{
-					"command": "ferocity.initializeLayer",
-					"when": "!ferociy.initialized"
+					"command": "ferocity.revealProject",
+					"when": "false"
 				}
 			],
 			"view/title": [
 				{
 					"command": "ferocity.refreshLayer",
 					"when": "view == ferocity.layer",
-					"group": "navigation"
+					"group": "navigation@3"
 				},
 				{
 					"command": "ferocity.refreshHierarchy",
@@ -139,11 +244,87 @@
 			],
 			"view/item/context": [
 				{
+					"command": "ferocity.addProject",
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.layer-item"
+				},
+				{
 					"command": "ferocity.showDependencyGraph",
-					"when": "view == ferocity.layer && viewItem == ferocity.layer.project-item"
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.project-item",
+					"group": "project@1"
+				},
+				{
+					"command": "ferocity.addModule",
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.project-item",
+					"group": "project@2"
+				},
+				{
+					"command": "ferocity.removeProject",
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.project-item",
+					"group": "project@2"
+				},
+				{
+					"command": "ferocity.buildModule",
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.module-item",
+					"group": "module@1@1"
+				},
+				{
+					"submenu": "ferocity.layer.module-item.add",
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.module-item",
+					"group": "module@2@1"
+				},
+				{
+					"submenu": "ferocity.layer.module-item.update",
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.module-item",
+					"group": "module@2@2"
+				},
+				{
+					"command": "ferocity.removeModule",
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.module-item",
+					"group": "module@3@1"
+				},
+				{
+					"command": "ferocity.removeSource",
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.source-item"
+				},
+				{
+					"command": "ferocity.removeBinary",
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.binary-item"
+				},
+				{
+					"command": "ferocity.revealSource",
+					"when": "view == ferocity.layer && viewItem == ferocity.layer.source-item || viewItem == ferocity.layer.source-directory-item || viewItem == ferocity.layer.source-file-item"
+				}
+			],
+			"ferocity.layer.module-item.add": [
+				{
+					"command": "ferocity.addSource"
+				},
+				{
+					"command": "ferocity.addBinary"
+				}
+			],
+			"ferocity.layer.module-item.update": [
+				{
+					"command": "ferocity.updateModuleCompiler"
+				},
+				{
+					"command": "ferocity.updateModuleName"
+				},
+				{
+					"command": "ferocity.updateModuleType"
 				}
 			]
 		},
+		"submenus": [
+			{
+				"id": "ferocity.layer.module-item.add",
+				"label": "Add"
+			},
+			{
+				"id": "ferocity.layer.module-item.update",
+				"label": "Update"
+			}
+		],
 		"markdown.markdownItPlugins": true
 	},
 	"scripts": {
@@ -174,7 +355,7 @@
 		"@types/vscode": "^1.43.0",
 		"eslint": "^7.9.0",
 		"glob": "^7.1.6",
-		"mermaid": "^8.7.0",
+		"mermaid": "^8.8.4",
 		"mocha": "^8.1.3",
 		"typescript": "^4.0.2",
 		"vscode-test": "^1.4.0"
