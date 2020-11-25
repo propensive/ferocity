@@ -1,6 +1,14 @@
 import axios from 'axios';
 import { sortDependencies } from './dependencyGraph';
 
+export interface Error {
+  message: string;
+}
+
+export function isError<T>(result: T | Error): result is Error {
+  return (result as Error).message !== undefined;
+}
+
 export namespace layer {
   export interface Layer {
     name: string;
@@ -25,20 +33,15 @@ export namespace layer {
     isLocal: boolean;
   }
 
-  export function get(workspace: string | undefined): Promise<Layer> {
+  export function get(workspace: string | undefined): Promise<Layer | Error> {
     console.log(`Getting a layer for workspace: ${workspace}.`);
     if (!workspace) {
       return Promise.reject('Unable to get a layer. Workspace undefined.');
     }
-
     const layerUrl = 'http://localhost:6325/layer?path=' + workspace;
     return axios
       .get(layerUrl)
-      .then(response => getLayer(response.data.result))
-      .catch(error => {
-        console.log(`Unable to get a layer: ${error}.`);
-        return error;
-      });
+      .then(response => getResultOrError(response, getLayer));
   }
 
   function getLayer(result: any) {
@@ -100,7 +103,7 @@ export namespace hierarchy {
     children: Hierarchy[]
   }
 
-  export function get(workspace: string | undefined): Promise<Hierarchy> {
+  export function get(workspace: string | undefined): Promise<Hierarchy | Error> {
     console.log(`Getting a hierarchy for workspace: ${workspace}.`);
     if (!workspace) {
       return Promise.reject('Unable to get a hierarchy. Workspace undefined.');
@@ -109,11 +112,7 @@ export namespace hierarchy {
     const hierarchyUrl = 'http://localhost:6325/hierarchy?path=' + workspace;
     return axios
       .get(hierarchyUrl)
-      .then(response => getHierarchy(response.data.result))
-      .catch(error => {
-        console.log(`Unable to get a hierarchy: ${error}.`);
-        return error;
-      });
+      .then(response => getResultOrError(response, getHierarchy));
   }
 
   function getHierarchy(hierarchy: any) {
@@ -133,7 +132,7 @@ export namespace universe {
     projects: string[]
   }
 
-  export function get(workspace: string | undefined): Promise<Universe> {
+  export function get(workspace: string | undefined): Promise<Universe | Error> {
     console.log(`Getting a universe for workspace: ${workspace}.`);
     if (!workspace) {
       return Promise.reject('Unable to get a universe. Workspace undefined.');
@@ -142,11 +141,7 @@ export namespace universe {
     const universeUrl = 'http://localhost:6325/universe?path=' + workspace;
     return axios
       .get(universeUrl)
-      .then(response => getUniverse(response.data.result))
-      .catch(error => {
-        console.log(`Unable to get a universe: ${error}.`);
-        return error;
-      });
+      .then(response => getResultOrError(response, getUniverse));
   }
 
   function getUniverse(universe: any) {
@@ -159,5 +154,15 @@ export namespace universe {
     return universe.projects
       .map((project: any) => project.id)
       .sort((a: string, b: string) => a < b ? -1 : 1);
+  }
+}
+
+function getResultOrError<T>(response: any, map: (result: any) => T): T | Error {
+  if (response.data.error === undefined) {
+    return map(response.data.result);
+  } else {
+    return {
+      message: response.data.error
+    };
   }
 }
