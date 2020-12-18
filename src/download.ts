@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import { pipeline } from 'stream';
 
 export default function download(url: string, destination: string): Promise<string> {
+  console.log(`Downloading from ${url} to ${destination}`);
   return fetch(url)
     .then(response => {
       if (!response.ok) {

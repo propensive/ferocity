@@ -61,8 +61,68 @@ function runFerocity(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.window.registerTreeDataProvider('ferocity.universe', universeTreeDataProvider));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.initializeLayer',
+		commands.initializeLayer()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
 		'ferocity.refreshLayer',
 		commands.refreshLayer(context, layerTreeDataProvider)
+	));;
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.addProject',
+		commands.addProject()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.removeProject',
+		commands.removeProject()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.showDependencyGraph',
+		commands.showDependencyGraph(context)
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.addModule',
+		commands.addModule()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.buildModule',
+		commands.buildModule()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.removeModule',
+		commands.removeModule()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.updateModuleCompiler',
+		commands.updateModuleCompiler()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.updateModuleName',
+		commands.updateModuleName()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.updateModuleType',
+		commands.updateModuleType()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.addSource',
+		commands.addSource()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.addBinary',
+		commands.addBinary()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.removeSource',
+		commands.removeSource()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.removeBinary',
+		commands.removeBinary()
+	));
+	context.subscriptions.push(vscode.commands.registerCommand(
+		'ferocity.revealSource',
+		commands.revealSource()
 	));
 	context.subscriptions.push(vscode.commands.registerCommand(
 		'ferocity.refreshHierarchy',
@@ -73,20 +133,12 @@ function runFerocity(context: vscode.ExtensionContext) {
 		commands.refreshUniverse(context, universeTreeDataProvider)
 	));
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'ferocity.showDependencyGraph',
-		commands.showDependencyGraph(context)
-	));
-	context.subscriptions.push(vscode.commands.registerCommand(
-		'ferocity.revealProject',
-		commands.revealProject(layerTreeDataProvider, layerTreeView)
-	));
-	context.subscriptions.push(vscode.commands.registerCommand(
 		'ferocity.openFile',
 		commands.openFile()
 	));
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'ferocity.initializeLayer',
-		commands.initializeLayer()
+		'ferocity.revealProject',
+		commands.revealProject(layerTreeDataProvider, layerTreeView)
 	));
 
 	vscode.commands.executeCommand('ferocity.refreshLayer');

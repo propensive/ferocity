@@ -2,11 +2,12 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 export class FerocityTreeItem extends vscode.TreeItem {
-	parent: FerocityTreeItem | undefined;
+	public readonly id: string;
 	children: FerocityTreeItem[] = [];
 
-	constructor(public readonly label: string, collapsible: boolean, public readonly contextValue: string | undefined) {
+	constructor(public readonly label: string, collapsible: boolean, public readonly contextValue: string, public readonly parent?: FerocityTreeItem) {
 		super(label);
+		this.id = parent ? parent.id + '.' + label : label;
 		this.collapsibleState = collapsible ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
 		this.contextValue = contextValue;
 	}
@@ -29,7 +30,7 @@ export class FerocityTreeDataProvider implements vscode.TreeDataProvider<Ferocit
 
 	getTreeItem(element: FerocityTreeItem): FerocityTreeItem {
 		return element;
-	}
+}
 
 	getChildren(element: FerocityTreeItem): Thenable<FerocityTreeItem[]> {
 		if (!element) {

@@ -6,18 +6,18 @@ export function createHierarchyTree(hierarchy: fury.hierarchy.Hierarchy | undefi
 }
 
 class HierarchyItem extends FerocityTreeItem {
-  constructor(hierarchyName: string) {
-    super(hierarchyName, true, 'ferocity.hierarchy.hierarchy-item');
+  constructor(hierarchyName: string, parent?: HierarchyItem) {
+    super(hierarchyName, true, 'ferocity.hierarchy.hierarchy-item', parent);
   }
 }
 
 function getHierarchyItems(hierarchy: fury.hierarchy.Hierarchy): FerocityTreeItem[] {
-  return [getHierarchyItem(hierarchy)];
+  return [getHierarchyItem(undefined, hierarchy)];
 }
 
-function getHierarchyItem(hierarchy: fury.hierarchy.Hierarchy): FerocityTreeItem {
-  const children = hierarchy.children.map(getHierarchyItem);
-  const hierarchyItem = new HierarchyItem(hierarchy.name);
+function getHierarchyItem(parent: HierarchyItem | undefined, hierarchy: fury.hierarchy.Hierarchy): FerocityTreeItem {
+  const hierarchyItem = new HierarchyItem(hierarchy.name, parent);
+  const children = hierarchy.children.map(child => getHierarchyItem(hierarchyItem, child));
   hierarchyItem.children = children;
   return hierarchyItem;
 }
