@@ -1,5 +1,6 @@
 import * as pcp from 'promisify-child-process';
 import * as vscode from 'vscode';
+import { LanguageClient } from 'vscode-languageclient';
 import * as fury from './fury';
 import { furyBin } from './settings';
 import * as state from './state';
@@ -40,7 +41,6 @@ export function refreshLayer(context: vscode.ExtensionContext, layerTreeDataProv
           console.log('Error: ' + layer.message);
           vscode.window.showErrorMessage('Layer failed to refresh.');
         } else {
-          console.log('Layer: ' + layer);
           context.workspaceState.update(state.layerKey, layer);
           layerTreeDataProvider.refresh();
           vscode.commands.executeCommand('setContext', 'ferocity.initialized', true);
@@ -186,7 +186,9 @@ export function updateModuleName() {
     }));
 }
 
-export function updateModuleType() {
+export function updateModuleType(client: LanguageClient) {
+  // @TODO: take suggestions from LSP server
+  // client.sendRequest(lsp.moduleTypeSuggestions).then((result) => {});
   return onModuleItem((project, module) => pick(
     'Module type',
     ['app', 'bench', 'compiler', 'lib', 'plugin'],
@@ -197,6 +199,10 @@ export function updateModuleType() {
             .updateModuleTypeToApp(vscode.workspace.rootPath, project.label, module.label, mainClass)
             .then(() => vscode.commands.executeCommand('ferocity.refreshLayer')));
           break;
+        case 'lib':
+          fury.layer
+            .updateModuleTypeToLib(vscode.workspace.rootPath, project.label, module.label)
+            .then(() => vscode.commands.executeCommand('ferocity.refreshLayer'));
       }
     }));
 }
@@ -278,7 +284,6 @@ export function refreshHierarchy(context: vscode.ExtensionContext, hierarchyTree
           console.log('Error: ' + hierarchy.message);
           vscode.window.showErrorMessage('Hierarchy failed to refresh.');
         } else {
-          console.log('Hierarchy: ' + hierarchy);
           context.workspaceState.update(state.hierarchyKey, hierarchy);
           hierarchyTreeDataProvider.refresh();
         }
@@ -295,7 +300,6 @@ export function refreshUniverse(context: vscode.ExtensionContext, universeTreeDa
           console.log('Error: ' + universe.message);
           vscode.window.showErrorMessage('Universe failed to refresh.');
         } else {
-          console.log('Universe: ' + universe);
           context.workspaceState.update(state.universeKey, universe);
           universeTreeDataProvider.refresh();
         }

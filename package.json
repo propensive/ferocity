@@ -341,7 +341,8 @@
 		"markdown-it-container": "^3.0.0",
 		"mkdirp": "^1.0.3",
 		"node-fetch": "^2.6.0",
-		"promisify-child-process": "^3.1.3"
+		"promisify-child-process": "^3.1.3",
+		"vscode-languageclient": "^6.0.0"
 	},
 	"devDependencies": {
 		"@typescript-eslint/parser": "^4.1.1",
@@ -352,7 +353,7 @@
 		"@types/mocha": "^8.0.0",
 		"@types/node": "^14.0.27",
 		"@types/node-fetch": "^2.5.4",
-		"@types/vscode": "^1.43.0",
+		"@types/vscode": "^1.51.0",
 		"eslint": "^7.9.0",
 		"glob": "^7.1.6",
 		"mermaid": "^8.8.4",

@@ -156,10 +156,7 @@ export namespace layer {
     }
 
     return new Promise((resolve, reject) => {
-      captureZshAutoCompletion(workspace, `fury module update -p ${project} -m ${module} -c `)
-        .then(output => output.split('\n').filter(compiler => compiler.length > 0).map(compiler => compiler.trim()))
-        .then(resolve)
-        .catch(error => reject('Unable to get compiler suggestions. Error: ' + error));
+        resolve([]);
     });
   }
 
@@ -196,6 +193,18 @@ export namespace layer {
       pcp.exec(`${furyBin} module update -p ${project} -m ${module} -t app -M ${main}`, { cwd: workspace })
         .then(() => resolve())
         .catch((error) => reject('Unable to update module type: ' + error));
+    });
+  }
+
+  export function updateModuleTypeToLib(workspace: string | undefined, project: string, module: string): Promise<void> {
+    if (!workspace) {
+      return Promise.reject('Unable to module type. No workspace.');
+    }
+
+    return new Promise((resolve, reject) =>  {
+      pcp.exec(`${furyBin} module update -p ${project} -m ${module} -t lib`, { cwd: workspace })
+      .then(() => resolve()) 
+      .catch((error) => reject('Unable to update module type: ' + error));
     });
   }
 
@@ -317,15 +326,4 @@ function getResultOrError<T>(response: any, map: (result: any) => T): T | Error 
       message: response.data.error
     };
   }
-}
-
-function captureZshAutoCompletion(workspace: string, cmd: string): Promise<string> {
-  const captureBin = path.join(__filename, '..', '..', 'media', 'scripts', 'capture.zsh');
-  return new Promise((resolve, reject) => {
-    pcp
-      .exec(`zsh -i -c "${captureBin} '${cmd} '"`, { cwd: workspace })
-      .then(output => utils.outputToString(output.stdout))
-      .then(resolve)
-      .catch(reject);
-  });
 }

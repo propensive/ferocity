@@ -1,7 +1,9 @@
 import * as pcp from 'promisify-child-process';
 import * as vscode from 'vscode';
+import { LanguageClient } from 'vscode-languageclient';
 import * as commands from './commands';
 import { DependencyGraphContentProvider, dependencyGraphScheme } from './dependencyGraph';
+import * as lsp from './lsp';
 import { extendMarkdownItWithMermaid } from './markdown';
 import { furyBin } from './settings';
 import { setUpFerocity } from './setUp';
@@ -12,36 +14,7 @@ import { createLayerTree, LayerTreeDataProvider } from './tree/layerTree';
 import { FerocityTreeDataProvider } from './tree/tree';
 import { createUniverseTree } from './tree/universeTree';
 
-export function activate(context: vscode.ExtensionContext) {
-	console.log('Ferociy extension has been activated.');
-	console.log('Workspace root path: ' + vscode.workspace.rootPath + '.');
-
-	vscode.commands.executeCommand('setContext', 'ferocity.initialized', false)
-		.then(() => context.workspaceState.update(state.layerKey, undefined))
-		.then(() => context.workspaceState.update(state.hierarchyKey, undefined))
-		.then(() => context.workspaceState.update(state.universeKey, undefined))
-		.then(() => setUpFerocity()
-			.then(() => {
-				vscode.window.showInformationMessage('Ferocity set up successfully.');
-			})
-			.catch((error: string) => {
-				console.log('Ferocity set up failed. Error: ' + error);
-				vscode.window.showErrorMessage('Ferocity set up failed.');
-			})
-			.then(() => pcp.exec(`${furyBin} about`))
-			.then(() => runFerocity(context))
-			.then(() => {
-				vscode.window.showInformationMessage('Ferocity run successfully.');
-			})
-			.catch((error: string) => {
-				console.log('Ferocity unable to run Ferocity. Error: ' + error);
-				vscode.window.showErrorMessage('Unable to run Ferocity.');
-			}));
-
-	return extendMarkdownItWithMermaid();
-}
-
-function runFerocity(context: vscode.ExtensionContext) {
+function runFerocity(context: vscode.ExtensionContext, lspClient: LanguageClient) {
 	context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(
 		ferocityScheme,
 		new FerocityTextDocumentContentProvider())
@@ -102,7 +75,7 @@ function runFerocity(context: vscode.ExtensionContext) {
 	));
 	context.subscriptions.push(vscode.commands.registerCommand(
 		'ferocity.updateModuleType',
-		commands.updateModuleType()
+		commands.updateModuleType(lspClient)
 	));
 	context.subscriptions.push(vscode.commands.registerCommand(
 		'ferocity.addSource',
@@ -144,4 +117,43 @@ function runFerocity(context: vscode.ExtensionContext) {
 	vscode.commands.executeCommand('ferocity.refreshLayer');
 	vscode.commands.executeCommand('ferocity.refreshHierarchy');
 	vscode.commands.executeCommand('ferocity.refreshUniverse');
+}
+
+export function activate(context: vscode.ExtensionContext) {
+	console.log('Ferociy extension has been activated.');
+	console.log('Workspace root path: ' + vscode.workspace.rootPath + '.');
+
+	console.log('Running LSP client...');
+	const lspClient = lsp.createClient(context);
+	context.subscriptions.push(lspClient.start());
+
+	lspClient
+		.onReady()
+		.then(() => {
+			console.log('LSP client is ready.'); // @TODO: it never is
+			vscode.commands.executeCommand('setContext', 'ferocity.initialized', false)
+				.then(() => context.workspaceState.update(state.layerKey, undefined))
+				.then(() => context.workspaceState.update(state.hierarchyKey, undefined))
+				.then(() => context.workspaceState.update(state.universeKey, undefined))
+				.then(() => setUpFerocity()
+					.then(() => {
+						vscode.window.showInformationMessage('Ferocity set up successfully.');
+					})
+					.catch((error: string) => {
+						console.log('Ferocity set up failed. Error: ' + error);
+						vscode.window.showErrorMessage('Ferocity set up failed.');
+					})
+					.then(() => pcp.exec(`${furyBin} about`))
+					.then(() => runFerocity(context, lspClient))
+					.then(() => {
+						vscode.window.showInformationMessage('Ferocity run successfully.');
+					})
+					.catch((error: string) => {
+						console.log('Ferocity unable to run Ferocity. Error: ' + error);
+						vscode.window.showErrorMessage('Unable to run Ferocity.');
+					}));
+		})
+		.catch(console.log);
+
+	return extendMarkdownItWithMermaid();
 }
